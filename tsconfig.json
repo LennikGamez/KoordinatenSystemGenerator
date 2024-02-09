@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "module": "ES2015",
+        "outDir": "dist/js"
+    },
+    "include": ["src/**/*.ts"],
+    "exclude": [
+        "node_modules"
+    ]
+}
