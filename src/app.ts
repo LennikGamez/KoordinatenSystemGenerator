@@ -12,4 +12,8 @@ function cmInPixel(cm: number){
     return cm * 37.7952756
 }
 
+function convertCanvasToImage(){
+    return canvas.toDataURL("image/png");
+}
+
 line(0,10, cmInPixel(2),10);
