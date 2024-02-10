@@ -15,16 +15,6 @@ function convertCanvasToImage() {
 function arrow(x, y, deg) {
     if (deg === void 0) { deg = 0; }
     var rad = degreesToRadians(deg);
-    // base
-    // ctx.beginPath();
-    // ctx.moveTo(x, y);
-    // ctx.lineTo(x + 10, y);
-    // ctx.stroke();
-    // ctx.beginPath();
-    // ctx.moveTo(x, y);
-    // ctx.lineTo(x - 10, y);
-    // ctx.stroke();
-    // side
     var oldTransform = ctx.getTransform();
     ctx.translate(x, y);
     ctx.rotate(rad);
@@ -49,9 +39,8 @@ function degreesToRadians(degrees) {
     return degrees * Math.PI / 180;
 }
 function drawSystem(gapInCm, x, y, z) {
+    var margin = 20;
     var gap = cmInPixel(gapInCm);
-    var startX = canvas.width / 2;
-    var startY = canvas.height / 2;
     var nameOffset = 20;
     var strokeLength = 5;
     var numberOffset = 15;
@@ -59,9 +48,15 @@ function drawSystem(gapInCm, x, y, z) {
     var lineBuffer = gap / 2;
     var endX = 0;
     var endY = 0;
-    ctx.canvas.width = window.innerWidth;
-    ctx.canvas.height = window.innerHeight;
-    startX = canvas.width / 2;
+    // calculate canvas size to fit content
+    var endOffset = lineBuffer + nameOffset;
+    var width = x * gap / 2 + endOffset + y * gap + endOffset;
+    var height = z * gap + endOffset + x * gap / 2 + endOffset;
+    ctx.canvas.width = width + margin * 2;
+    ctx.canvas.height = height + margin * 2;
+    // calculate origin of coordinate system
+    var startX = x * gap / 2 + endOffset + margin;
+    var startY = z * gap + endOffset + margin;
     ctx.translate(startX, startY);
     write('0', -12, 0, numberSize);
     // z-Achse
@@ -94,6 +89,6 @@ function drawSystem(gapInCm, x, y, z) {
         write(i.toString(), -i * gap / 2 + numberOffset, +i * gap / 2 + numberOffset, numberSize);
     }
 }
-drawSystem(1, 5, 6, 10);
+drawSystem(2, 5, 6, 100);
 var x = convertCanvasToImage();
 document.querySelector('body').appendChild(document.createElement('img')).setAttribute('src', x);
