@@ -46,6 +46,11 @@ function degreesToRadians(degrees: number){
     return degrees * Math.PI / 180
 }
 
+
+function xAxis(){
+    
+}
+
 function drawSystem(gapInCm: number, x, y, z){
     const margin = 20;
     const gap = cmInPixel(gapInCm);
@@ -112,7 +117,54 @@ function drawSystem(gapInCm: number, x, y, z){
     }
 }
 
+class Generator{
+    margin: number = 20;
+    nameOffset: number = 20;
+    strokeLength: number = 5;
+    numberOffset: number = 15;
+    numberSize: number = 15;
+    gap: number;
+    lineBuffer: number;
+
+
+    generate(gap, x, y, z){
+        this.gap = cmInPixel(gap);
+        this.lineBuffer = this.gap/2;
+    }
+    xAxis(x){
+        const endX = -x * this.gap/2 - this.lineBuffer;
+        const endY = x * this.gap/2 + this.lineBuffer;
+    
+        line(0, 0, -x*this.gap/2 - this.lineBuffer, x*this.gap/2 + this.lineBuffer);
+        arrow(endX, endY, 270-45);
+        write('x', endX - this.nameOffset, endY + this.nameOffset);
+    
+        for (let i = 1; i <= x; i++) {
+            line(-i*this.gap/2 - this.strokeLength, +i*this.gap/2 - this.strokeLength, this.strokeLength*2, this.strokeLength*2)
+            write(i.toString(), -i*this.gap/2 + this.numberOffset, +i*this.gap/2 + this.numberOffset, this.numberSize)
+        }
+    }
+    yAxis(y){
+        const endX = 0 + y*this.gap + this.lineBuffer;
+        const endY = 0;
+        
+        line(0, 0, y*this.gap + this.lineBuffer, 0);
+        arrow(endX, endY, 90);
+        write('y', endX + this.nameOffset, endY);
+        
+        for (let i = 1; i <= y; i++) {
+            line(i*this.gap, -this.strokeLength, 0, this.strokeLength*2)
+            write(i.toString(), i*this.gap, + this.numberOffset, this.numberSize)
+        }
+    }
+    zAxis(){
+        
+    }
+}
+
 drawSystem(2, 5, 6, 100);
 
 let x = convertCanvasToImage();
 document.querySelector('body').appendChild(document.createElement('img')).setAttribute('src', x);
+
+canvas.remove();

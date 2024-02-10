@@ -38,6 +38,8 @@ function write(text, x, y, size) {
 function degreesToRadians(degrees) {
     return degrees * Math.PI / 180;
 }
+function xAxis() {
+}
 function drawSystem(gapInCm, x, y, z) {
     var margin = 20;
     var gap = cmInPixel(gapInCm);
@@ -89,6 +91,36 @@ function drawSystem(gapInCm, x, y, z) {
         write(i.toString(), -i * gap / 2 + numberOffset, +i * gap / 2 + numberOffset, numberSize);
     }
 }
+var Generator = /** @class */ (function () {
+    function Generator() {
+        this.margin = 20;
+        this.nameOffset = 20;
+        this.strokeLength = 5;
+        this.numberOffset = 15;
+        this.numberSize = 15;
+    }
+    Generator.prototype.generate = function (gap, x, y, z) {
+        this.gap = cmInPixel(gap);
+        this.lineBuffer = this.gap / 2;
+    };
+    Generator.prototype.xAxis = function () {
+    };
+    Generator.prototype.yAxis = function (y) {
+        var endX = 0 + y * this.gap + this.lineBuffer;
+        var endY = 0;
+        line(0, 0, y * this.gap + this.lineBuffer, 0);
+        arrow(endX, endY, 90);
+        write('y', endX + this.nameOffset, endY);
+        for (var i = 1; i <= y; i++) {
+            line(i * this.gap, -this.strokeLength, 0, this.strokeLength * 2);
+            write(i.toString(), i * this.gap, +this.numberOffset, this.numberSize);
+        }
+    };
+    Generator.prototype.zAxis = function () {
+    };
+    return Generator;
+}());
 drawSystem(2, 5, 6, 100);
 var x = convertCanvasToImage();
 document.querySelector('body').appendChild(document.createElement('img')).setAttribute('src', x);
+canvas.remove();
