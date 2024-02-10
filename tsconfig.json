@@ -1,7 +1,8 @@
 {
     "compilerOptions": {
-        "module": "ES2015",
-        "outDir": "dist/js"
+        "module": "ESNext",
+        "outDir": "dist/js",
+        "lib": ["ESNext", "DOM"],
     },
     "include": ["src/**/*.ts"],
     "exclude": [

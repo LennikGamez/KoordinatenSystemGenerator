@@ -46,6 +46,12 @@ function degreesToRadians(degrees: number){
     return degrees * Math.PI / 180
 }
 
+function drawImage(){
+    let x = convertCanvasToImage();
+    document.querySelector('#display').setAttribute('src', x);
+
+}
+
 class Section{
     section: HTMLDivElement;
     step: number = 1;
@@ -82,10 +88,14 @@ class Generator{
     z: number;
 
     sections: Array<Section>;
+
+    strokeWidth = ctx.lineWidth;
     constructor(gap: number){
         this.gap = cmInPixel(gap);
         this.gapInCm = gap;
-
+        this.strokeWidth = this.gapInCm;
+        this.numberOffset += this.strokeWidth + 5;
+        this.nameOffset += this.strokeWidth + 5;
         this.loadOptions();
 
         this.generate();
@@ -115,10 +125,14 @@ class Generator{
 
         this.calculateCanvasSize(this.gap, this.x, this.y, this.z, this.lineBuffer + this.nameOffset);
         this.calculateOrigin(this.gap, this.x, this.z, this.lineBuffer + this.nameOffset);
+        ctx.lineWidth = this.strokeWidth;
 
         this.xAxis(this.x);
         this.yAxis(this.y);
         this.zAxis(this.z);
+
+        drawImage();
+
     }
 
     calculateCanvasSize(gap, x, y, z, endOffset){
@@ -139,7 +153,7 @@ class Generator{
 
 
         ctx.translate(startX, startY);
-        write('0', -12, 0, this.numberSize)
+        write('0', -12, 0, this.numberSize * this.strokeWidth / 2)
     }
     xAxis(x){
         const endX = -x * this.gap/2 - this.lineBuffer;
@@ -147,12 +161,12 @@ class Generator{
     
         line(0, 0, -x*this.gap/2 - this.lineBuffer, x*this.gap/2 + this.lineBuffer);
         arrow(endX, endY, 270-45);
-        write(this.xSection.name, endX - this.nameOffset, endY + this.nameOffset);
+        write(this.xSection.name, endX - this.nameOffset, endY + this.nameOffset, this.numberSize * this.strokeWidth / 2);
     
         for (let i = 1; i <= x; i++) {
             const stepSize: number = i*this.gap/2
             line(-stepSize - this.strokeLength, +stepSize - this.strokeLength, this.strokeLength*2, this.strokeLength*2)            
-            write((i*this.xSection.step).toString(), -stepSize + this.numberOffset, +stepSize + this.numberOffset, this.numberSize)
+            write((i*this.xSection.step).toString(), -stepSize + this.numberOffset, +stepSize + this.numberOffset, this.numberSize * this.strokeWidth / 2)
         }
     }
     yAxis(y){
@@ -161,32 +175,39 @@ class Generator{
         
         line(0, 0, y*this.gap + this.lineBuffer, 0);
         arrow(endX, endY, 90);
-        write(this.ySection.name, endX + this.nameOffset, endY);
+        write(this.ySection.name, endX + this.nameOffset, endY, this.numberSize * this.strokeWidth / 2);
         
         for (let i = 1; i <= y; i++) {
             const stepSize: number = i*this.gap;
             line(stepSize, -this.strokeLength, 0, this.strokeLength*2)
-            write((i*this.ySection.step).toString(), stepSize, + this.numberOffset, this.numberSize)
+            write((i*this.ySection.step).toString(), stepSize, + this.numberOffset, this.numberSize * this.strokeWidth / 2)
         }
     }
-    zAxis(z){
+    zAxis(z){        
         const endY = -z*this.gap - this.lineBuffer;
         line(0, 0, 0, endY);
         arrow(0, endY);
-        write(this.zSection.name, 0, endY - this.nameOffset);
+        write(this.zSection.name, 0, endY - this.nameOffset, this.numberSize * this.strokeWidth / 2)
     
         for(let i = 1; i <= z; i++){
             const stepSize: number = i*this.gap;
             line(-this.strokeLength, -stepSize, this.strokeLength*2, 0)
-            write((i*this.zSection.step).toString(), -this.numberOffset, -stepSize, this.numberSize)
+            write((i*this.zSection.step).toString(), -this.numberOffset, -stepSize, this.numberSize * this.strokeWidth / 2)
         }
     }
 }
 
 // drawSystem(2, 5, 6, 100);
-new Generator(1);
+new Generator(5);
+canvas.remove();
 
-let x = convertCanvasToImage();
-document.querySelector('body').appendChild(document.createElement('img')).setAttribute('src', x);
+async function copyImage(){
+    const data = await fetch(convertCanvasToImage());
+    const blob = await data.blob();
+    await navigator.clipboard.write([
+        new ClipboardItem({ 'image/png': blob })
+    ]) 
+    alert('copied');
+}
 
-// canvas.remove();
+copyImage();
