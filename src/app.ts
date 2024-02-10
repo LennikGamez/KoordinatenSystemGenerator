@@ -47,75 +47,6 @@ function degreesToRadians(degrees: number){
 }
 
 
-function xAxis(){
-    
-}
-
-function drawSystem(gapInCm: number, x, y, z){
-    const margin = 20;
-    const gap = cmInPixel(gapInCm);
-    const nameOffset = 20;
-    const strokeLength = 5;
-    const numberOffset = 15;
-    const numberSize = 15;
-    
-    let lineBuffer = gap/2;
-    let endX = 0;
-    let endY = 0;
-
-    // calculate canvas size to fit content
-    const endOffset = lineBuffer + nameOffset;
-    const width = x*gap/2 + endOffset  + y*gap + endOffset;
-    const height = z*gap + endOffset + x*gap/2 + endOffset;
-
-    ctx.canvas.width  = width + margin*2;
-    ctx.canvas.height = height + margin*2;
-
-    // calculate origin of coordinate system
-    const startX = x*gap/2 + endOffset + margin;
-    const startY = z*gap + endOffset + margin;
-
-
-    ctx.translate(startX, startY);
-    write('0', -12, 0, numberSize)
-
-    // z-Achse
-    endY = -z*gap - lineBuffer;
-    line(0, 0, 0, endY);
-    arrow(0, endY);
-    write('z', 0, endY - nameOffset);
-
-    for(let i = 1; i <= z; i++){
-        line(-strokeLength, -i*gap, strokeLength*2, 0)
-        write(i.toString(), -numberOffset, -i*gap, numberSize)
-    }
-
-    // y-Achse
-    endX = 0 + y*gap + lineBuffer;
-    endY = 0;
-    
-    line(0, 0, y*gap + lineBuffer, 0);
-    arrow(endX, endY, 90);
-    write('y', endX + nameOffset, endY);
-    
-    for (let i = 1; i <= y; i++) {
-        line(i*gap, -strokeLength, 0, strokeLength*2)
-        write(i.toString(), i*gap, + numberOffset, numberSize)
-    }
-    // x-Achse
-
-    endX = -x * gap/2 - lineBuffer;
-    endY = x * gap/2 + lineBuffer;
-
-    line(0, 0, -x*gap/2 - lineBuffer, x*gap/2 + lineBuffer);
-    arrow(endX, endY, 270-45);
-    write('x', endX - nameOffset, endY + nameOffset);
-
-    for (let i = 1; i <= x; i++) {
-        line(-i*gap/2 - strokeLength, +i*gap/2 - strokeLength, strokeLength*2, strokeLength*2)
-        write(i.toString(), -i*gap/2 + numberOffset, +i*gap/2 + numberOffset, numberSize)
-    }
-}
 
 class Generator{
     margin: number = 20;
@@ -126,10 +57,36 @@ class Generator{
     gap: number;
     lineBuffer: number;
 
-
     generate(gap, x, y, z){
         this.gap = cmInPixel(gap);
         this.lineBuffer = this.gap/2;
+
+        this.calculateCanvasSize(this.gap, x, y, z, this.lineBuffer + this.nameOffset);
+        this.calculateOrigin(this.gap, x, y, z, this.lineBuffer + this.nameOffset);
+
+        this.xAxis(x);
+        this.yAxis(y);
+        this.zAxis(z);
+    }
+
+    calculateCanvasSize(gap, x, y, z, endOffset){
+        // calculate canvas size to fit content
+        const width = x*gap/2 + endOffset  + y*gap + endOffset;
+        const height = z*gap + endOffset + x*gap/2 + endOffset;
+
+        ctx.canvas.width  = width + this.margin*2;
+        ctx.canvas.height = height + this.margin*2;
+    }
+
+    calculateOrigin(gap, x, y, z, endOffset){
+
+        // calculate origin of coordinate system
+        const startX = x*gap/2 + endOffset + this.margin;
+        const startY = z*gap + endOffset + this.margin;
+
+
+        ctx.translate(startX, startY);
+        write('0', -12, 0, this.numberSize)
     }
     xAxis(x){
         const endX = -x * this.gap/2 - this.lineBuffer;
@@ -140,8 +97,9 @@ class Generator{
         write('x', endX - this.nameOffset, endY + this.nameOffset);
     
         for (let i = 1; i <= x; i++) {
-            line(-i*this.gap/2 - this.strokeLength, +i*this.gap/2 - this.strokeLength, this.strokeLength*2, this.strokeLength*2)
-            write(i.toString(), -i*this.gap/2 + this.numberOffset, +i*this.gap/2 + this.numberOffset, this.numberSize)
+            const stepSize: number = i*this.gap/2
+            line(-stepSize - this.strokeLength, +stepSize - this.strokeLength, this.strokeLength*2, this.strokeLength*2)
+            write(i.toString(), -stepSize + this.numberOffset, +stepSize + this.numberOffset, this.numberSize)
         }
     }
     yAxis(y){
@@ -153,18 +111,29 @@ class Generator{
         write('y', endX + this.nameOffset, endY);
         
         for (let i = 1; i <= y; i++) {
-            line(i*this.gap, -this.strokeLength, 0, this.strokeLength*2)
-            write(i.toString(), i*this.gap, + this.numberOffset, this.numberSize)
+            const stepSize: number = i*this.gap;
+            line(stepSize, -this.strokeLength, 0, this.strokeLength*2)
+            write(i.toString(), stepSize, + this.numberOffset, this.numberSize)
         }
     }
-    zAxis(){
-        
+    zAxis(z){
+        const endY = -z*this.gap - this.lineBuffer;
+        line(0, 0, 0, endY);
+        arrow(0, endY);
+        write('z', 0, endY - this.nameOffset);
+    
+        for(let i = 1; i <= z; i++){
+            const stepSize: number = i*this.gap;
+            line(-this.strokeLength, -stepSize, this.strokeLength*2, 0)
+            write(i.toString(), -this.numberOffset, -stepSize, this.numberSize)
+        }
     }
 }
 
-drawSystem(2, 5, 6, 100);
+// drawSystem(2, 5, 6, 100);
+new Generator().generate(1, 5, 6, 10);
 
 let x = convertCanvasToImage();
 document.querySelector('body').appendChild(document.createElement('img')).setAttribute('src', x);
 
-canvas.remove();
+// canvas.remove();

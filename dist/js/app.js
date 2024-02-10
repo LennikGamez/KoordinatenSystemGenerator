@@ -38,59 +38,6 @@ function write(text, x, y, size) {
 function degreesToRadians(degrees) {
     return degrees * Math.PI / 180;
 }
-function xAxis() {
-}
-function drawSystem(gapInCm, x, y, z) {
-    var margin = 20;
-    var gap = cmInPixel(gapInCm);
-    var nameOffset = 20;
-    var strokeLength = 5;
-    var numberOffset = 15;
-    var numberSize = 15;
-    var lineBuffer = gap / 2;
-    var endX = 0;
-    var endY = 0;
-    // calculate canvas size to fit content
-    var endOffset = lineBuffer + nameOffset;
-    var width = x * gap / 2 + endOffset + y * gap + endOffset;
-    var height = z * gap + endOffset + x * gap / 2 + endOffset;
-    ctx.canvas.width = width + margin * 2;
-    ctx.canvas.height = height + margin * 2;
-    // calculate origin of coordinate system
-    var startX = x * gap / 2 + endOffset + margin;
-    var startY = z * gap + endOffset + margin;
-    ctx.translate(startX, startY);
-    write('0', -12, 0, numberSize);
-    // z-Achse
-    endY = -z * gap - lineBuffer;
-    line(0, 0, 0, endY);
-    arrow(0, endY);
-    write('z', 0, endY - nameOffset);
-    for (var i = 1; i <= z; i++) {
-        line(-strokeLength, -i * gap, strokeLength * 2, 0);
-        write(i.toString(), -numberOffset, -i * gap, numberSize);
-    }
-    // y-Achse
-    endX = 0 + y * gap + lineBuffer;
-    endY = 0;
-    line(0, 0, y * gap + lineBuffer, 0);
-    arrow(endX, endY, 90);
-    write('y', endX + nameOffset, endY);
-    for (var i = 1; i <= y; i++) {
-        line(i * gap, -strokeLength, 0, strokeLength * 2);
-        write(i.toString(), i * gap, +numberOffset, numberSize);
-    }
-    // x-Achse
-    endX = -x * gap / 2 - lineBuffer;
-    endY = x * gap / 2 + lineBuffer;
-    line(0, 0, -x * gap / 2 - lineBuffer, x * gap / 2 + lineBuffer);
-    arrow(endX, endY, 270 - 45);
-    write('x', endX - nameOffset, endY + nameOffset);
-    for (var i = 1; i <= x; i++) {
-        line(-i * gap / 2 - strokeLength, +i * gap / 2 - strokeLength, strokeLength * 2, strokeLength * 2);
-        write(i.toString(), -i * gap / 2 + numberOffset, +i * gap / 2 + numberOffset, numberSize);
-    }
-}
 var Generator = /** @class */ (function () {
     function Generator() {
         this.margin = 20;
@@ -102,8 +49,37 @@ var Generator = /** @class */ (function () {
     Generator.prototype.generate = function (gap, x, y, z) {
         this.gap = cmInPixel(gap);
         this.lineBuffer = this.gap / 2;
+        this.calculateCanvasSize(this.gap, x, y, z, this.lineBuffer + this.nameOffset);
+        this.calculateOrigin(this.gap, x, y, z, this.lineBuffer + this.nameOffset);
+        this.xAxis(x);
+        this.yAxis(y);
+        this.zAxis(z);
     };
-    Generator.prototype.xAxis = function () {
+    Generator.prototype.calculateCanvasSize = function (gap, x, y, z, endOffset) {
+        // calculate canvas size to fit content
+        var width = x * gap / 2 + endOffset + y * gap + endOffset;
+        var height = z * gap + endOffset + x * gap / 2 + endOffset;
+        ctx.canvas.width = width + this.margin * 2;
+        ctx.canvas.height = height + this.margin * 2;
+    };
+    Generator.prototype.calculateOrigin = function (gap, x, y, z, endOffset) {
+        // calculate origin of coordinate system
+        var startX = x * gap / 2 + endOffset + this.margin;
+        var startY = z * gap + endOffset + this.margin;
+        ctx.translate(startX, startY);
+        write('0', -12, 0, this.numberSize);
+    };
+    Generator.prototype.xAxis = function (x) {
+        var endX = -x * this.gap / 2 - this.lineBuffer;
+        var endY = x * this.gap / 2 + this.lineBuffer;
+        line(0, 0, -x * this.gap / 2 - this.lineBuffer, x * this.gap / 2 + this.lineBuffer);
+        arrow(endX, endY, 270 - 45);
+        write('x', endX - this.nameOffset, endY + this.nameOffset);
+        for (var i = 1; i <= x; i++) {
+            var stepSize = i * this.gap / 2;
+            line(-stepSize - this.strokeLength, +stepSize - this.strokeLength, this.strokeLength * 2, this.strokeLength * 2);
+            write(i.toString(), -stepSize + this.numberOffset, +stepSize + this.numberOffset, this.numberSize);
+        }
     };
     Generator.prototype.yAxis = function (y) {
         var endX = 0 + y * this.gap + this.lineBuffer;
@@ -112,15 +88,26 @@ var Generator = /** @class */ (function () {
         arrow(endX, endY, 90);
         write('y', endX + this.nameOffset, endY);
         for (var i = 1; i <= y; i++) {
-            line(i * this.gap, -this.strokeLength, 0, this.strokeLength * 2);
-            write(i.toString(), i * this.gap, +this.numberOffset, this.numberSize);
+            var stepSize = i * this.gap;
+            line(stepSize, -this.strokeLength, 0, this.strokeLength * 2);
+            write(i.toString(), stepSize, +this.numberOffset, this.numberSize);
         }
     };
-    Generator.prototype.zAxis = function () {
+    Generator.prototype.zAxis = function (z) {
+        var endY = -z * this.gap - this.lineBuffer;
+        line(0, 0, 0, endY);
+        arrow(0, endY);
+        write('z', 0, endY - this.nameOffset);
+        for (var i = 1; i <= z; i++) {
+            var stepSize = i * this.gap;
+            line(-this.strokeLength, -stepSize, this.strokeLength * 2, 0);
+            write(i.toString(), -this.numberOffset, -stepSize, this.numberSize);
+        }
     };
     return Generator;
 }());
-drawSystem(2, 5, 6, 100);
+// drawSystem(2, 5, 6, 100);
+new Generator().generate(1, 5, 6, 10);
 var x = convertCanvasToImage();
 document.querySelector('body').appendChild(document.createElement('img')).setAttribute('src', x);
-canvas.remove();
+// canvas.remove();
