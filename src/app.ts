@@ -46,6 +46,19 @@ function degreesToRadians(degrees: number){
     return degrees * Math.PI / 180
 }
 
+class Section{
+    section: HTMLDivElement;
+    step: number = 1;
+    name: string;
+    units: number;
+
+    constructor(section: HTMLDivElement){
+        this.section = section;
+        this.name = (section.querySelector('input[name="name"]') as HTMLInputElement).value.toLowerCase();
+        this.step = parseFloat((section.querySelector('input[name="step"]') as HTMLInputElement).value);
+        this.units = parseFloat((section.querySelector('input[name="unit"]') as HTMLInputElement).value);
+    }
+}
 
 
 class Generator{
@@ -57,16 +70,55 @@ class Generator{
     gap: number;
     lineBuffer: number;
 
-    generate(gap, x, y, z){
+    xSection: Section;
+
+    ySection: Section;
+
+    zSection: Section
+
+    gapInCm: number;
+    x: number;
+    y: number;
+    z: number;
+
+    sections: Array<Section>;
+    constructor(gap: number){
         this.gap = cmInPixel(gap);
+        this.gapInCm = gap;
+
+        this.loadOptions();
+
+        this.generate();
+        this.sections.forEach(section => {
+            section.section.addEventListener('input', this.generate.bind(this))
+        });
+    }
+
+    loadOptions(){
+        this.xSection = new Section(document.getElementById('x-axis') as HTMLDivElement);
+        this.ySection = new Section(document.getElementById('y-axis') as HTMLDivElement);
+        this.zSection = new Section(document.getElementById('z-axis') as HTMLDivElement);
+        
+        this.x = this.xSection.units;
+        this.y = this.ySection.units;
+        this.z = this.zSection.units;
+        this.sections = [this.xSection, this.ySection, this.zSection];
+    }
+
+    generate(){
+        
+        this.loadOptions();
+        ctx.resetTransform();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        this.gap = cmInPixel(this.gapInCm);
         this.lineBuffer = this.gap/2;
 
-        this.calculateCanvasSize(this.gap, x, y, z, this.lineBuffer + this.nameOffset);
-        this.calculateOrigin(this.gap, x, y, z, this.lineBuffer + this.nameOffset);
+        this.calculateCanvasSize(this.gap, this.x, this.y, this.z, this.lineBuffer + this.nameOffset);
+        this.calculateOrigin(this.gap, this.x, this.z, this.lineBuffer + this.nameOffset);
 
-        this.xAxis(x);
-        this.yAxis(y);
-        this.zAxis(z);
+        this.xAxis(this.x);
+        this.yAxis(this.y);
+        this.zAxis(this.z);
     }
 
     calculateCanvasSize(gap, x, y, z, endOffset){
@@ -74,11 +126,12 @@ class Generator{
         const width = x*gap/2 + endOffset  + y*gap + endOffset;
         const height = z*gap + endOffset + x*gap/2 + endOffset;
 
-        ctx.canvas.width  = width + this.margin*2;
-        ctx.canvas.height = height + this.margin*2;
+        canvas.width  = width + this.margin*2;
+        canvas.height = height + this.margin*2;
+        
     }
 
-    calculateOrigin(gap, x, y, z, endOffset){
+    calculateOrigin(gap, x, z, endOffset){
 
         // calculate origin of coordinate system
         const startX = x*gap/2 + endOffset + this.margin;
@@ -94,12 +147,12 @@ class Generator{
     
         line(0, 0, -x*this.gap/2 - this.lineBuffer, x*this.gap/2 + this.lineBuffer);
         arrow(endX, endY, 270-45);
-        write('x', endX - this.nameOffset, endY + this.nameOffset);
+        write(this.xSection.name, endX - this.nameOffset, endY + this.nameOffset);
     
         for (let i = 1; i <= x; i++) {
             const stepSize: number = i*this.gap/2
-            line(-stepSize - this.strokeLength, +stepSize - this.strokeLength, this.strokeLength*2, this.strokeLength*2)
-            write(i.toString(), -stepSize + this.numberOffset, +stepSize + this.numberOffset, this.numberSize)
+            line(-stepSize - this.strokeLength, +stepSize - this.strokeLength, this.strokeLength*2, this.strokeLength*2)            
+            write((i*this.xSection.step).toString(), -stepSize + this.numberOffset, +stepSize + this.numberOffset, this.numberSize)
         }
     }
     yAxis(y){
@@ -108,30 +161,30 @@ class Generator{
         
         line(0, 0, y*this.gap + this.lineBuffer, 0);
         arrow(endX, endY, 90);
-        write('y', endX + this.nameOffset, endY);
+        write(this.ySection.name, endX + this.nameOffset, endY);
         
         for (let i = 1; i <= y; i++) {
             const stepSize: number = i*this.gap;
             line(stepSize, -this.strokeLength, 0, this.strokeLength*2)
-            write(i.toString(), stepSize, + this.numberOffset, this.numberSize)
+            write((i*this.ySection.step).toString(), stepSize, + this.numberOffset, this.numberSize)
         }
     }
     zAxis(z){
         const endY = -z*this.gap - this.lineBuffer;
         line(0, 0, 0, endY);
         arrow(0, endY);
-        write('z', 0, endY - this.nameOffset);
+        write(this.zSection.name, 0, endY - this.nameOffset);
     
         for(let i = 1; i <= z; i++){
             const stepSize: number = i*this.gap;
             line(-this.strokeLength, -stepSize, this.strokeLength*2, 0)
-            write(i.toString(), -this.numberOffset, -stepSize, this.numberSize)
+            write((i*this.zSection.step).toString(), -this.numberOffset, -stepSize, this.numberSize)
         }
     }
 }
 
 // drawSystem(2, 5, 6, 100);
-new Generator().generate(1, 5, 6, 10);
+new Generator(1);
 
 let x = convertCanvasToImage();
 document.querySelector('body').appendChild(document.createElement('img')).setAttribute('src', x);
