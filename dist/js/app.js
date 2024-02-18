@@ -85,7 +85,7 @@ var Section = /** @class */ (function () {
         this.name = section.querySelector('input[name="name"]').value.toLowerCase();
         this.step = parseFloat(section.querySelector('input[name="step"]').value);
         this.from = parseFloat(section.querySelector('input[name="unit-from"]').value);
-        this.to = parseFloat(section.querySelector('input[name="unit-to"]').value);
+        this.to = Math.abs(parseFloat(section.querySelector('input[name="unit-to"]').value));
     }
     return Section;
 }());

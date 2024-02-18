@@ -64,7 +64,7 @@ class Section{
         this.name = (section.querySelector('input[name="name"]') as HTMLInputElement).value.toLowerCase();
         this.step = parseFloat((section.querySelector('input[name="step"]') as HTMLInputElement).value);
         this.from = parseFloat((section.querySelector('input[name="unit-from"]') as HTMLInputElement).value);
-        this.to = parseFloat((section.querySelector('input[name="unit-to"]') as HTMLInputElement).value);
+        this.to = Math.abs(parseFloat((section.querySelector('input[name="unit-to"]') as HTMLInputElement).value));
     }
 }
 
