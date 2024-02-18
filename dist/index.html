@@ -1,43 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CSG</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
     <script src="js/app.js" defer></script>
-</head>
-<body>
+  </head>
+  <body>
     <div id="options">
-        <div id="x-axis">
-            <label for="unit">X</label>
-            <input type="number" name="unit-from" value=4>
-            <input type="number" name="unit-to" value=5>
-
-            <input type="number" name="step" value=1>
-            <input type="text" name="name" value="X">
+      <h3>X</h3>
+      <div id="x-axis">
+        <div>
+          <label for="unit-from">Min: </label>
+          <input type="number" name="unit-from" value="4" />
         </div>
-        
-        <div id="y-axis">
-            <label for="y">Y</label>
-            <input type="number" name="unit-from" value=4>
-            <input type="number" name="unit-to" value=5>
+        <div>
+          <label for="unit-to">Max: </label>
+          <input type="number" name="unit-to" value="5" />
+        </div>
+        <div>
+          <label for="step">Step: </label>
+          <input type="number" name="step" value="1" />
+        </div>
+        <div>
+          <label for="name">Name: </label>
+          <input type="text" name="name" value="X" />
+        </div>
+      </div>
 
-            <input type="number" name="step" value=1>
-            <input type="text" name="name" value="Y">
+      <h3>Y</h3>
+      <div id="y-axis">
+        <div>
+          <label for="unit-from">Min: </label>
+          <input type="number" name="unit-from" value="4" />
+        </div>
+        <div>
+          <label for="unit-to">Max: </label>
+          <input type="number" name="unit-to" value="5" />
         </div>
 
-        <div id="z-axis">
-            <label for="z">Z</label>
-            <input type="number" name="unit-from" value=4>
-            <input type="number" name="unit-to" value=5>
-
-            <input type="number" name="step" value=1>
-            <input type="text" name="name" value="Z">
+        <div>
+          <label for="step">Step: </label>
+          <input type="number" name="step" value="1" />
         </div>
+        <div>
+          <label for="name">Name: </label>
+          <input type="text" name="name" value="Y" />
+        </div>
+      </div>
+
+      <h3>Z</h3>
+      <div id="z-axis">
+        <div>
+          <label for="unit-from">Min: </label>
+          <input type="number" name="unit-from" value="4" />
+        </div>
+        <div>
+          <label for="unit-to">Max: </label>
+          <input type="number" name="unit-to" value="5" />
+        </div>
+
+        <div>
+          <label for="step">Step: </label>
+          <input type="number" name="step" value="1" />
+        </div>
+        <div>
+          <label for="name">Name: </label>
+          <input type="text" name="name" value="Z" />
+        </div>
+      </div>
     </div>
     <canvas id="canvas" width="600" height="600"></canvas>
-    <button onclick="copyImage()">Copy</button>
-    <img id="display">
-</body>
+    <img id="display" />
+    <button id="copy" onclick="copyImage()">Copy</button>
+  </body>
 </html>
