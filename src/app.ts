@@ -16,24 +16,6 @@ function convertCanvasToImage(){
     return canvas.toDataURL("image/png");
 }
 
-function arrow(x: number, y: number, deg: number = 0) {
-    const rad = degreesToRadians(deg);
-    const oldTransform = ctx.getTransform();
-
-    ctx.translate(x, y);
-    ctx.rotate(rad);
-    ctx.beginPath();
-    ctx.moveTo(10, 0);
-    ctx.lineTo(0, - 10);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(-10, 0);
-    ctx.lineTo(0, - 10);
-    ctx.stroke();
-    ctx.setTransform(oldTransform);
-
-}
 
 function write(text: string, x: number, y: number, size: number = 20){
     ctx.textAlign = 'center';
@@ -101,14 +83,33 @@ class Generator{
         this.strokeWidth = this.gapInCm;
         this.strokeLength = this.strokeWidth * 1.75;
         this.numberOffset += this.strokeWidth + this.strokeLength * 2
-        ;
         this.nameOffset += this.strokeWidth;
+        this.nameOffset += this.numberSize + this.strokeLength;
         this.loadOptions();
 
         this.generate();
         this.sections.forEach(section => {2
             section.section.addEventListener('input', this.generate.bind(this))
         });
+    }
+
+    arrow(x: number, y: number, deg: number = 0) {
+        const rad = degreesToRadians(deg);
+        const oldTransform = ctx.getTransform();
+    
+        ctx.translate(x, y);
+        ctx.rotate(rad);
+        ctx.beginPath();
+        ctx.moveTo(this.strokeLength, 0);
+        ctx.lineTo(0, - this.strokeLength);
+        ctx.stroke();
+    
+        ctx.beginPath();
+        ctx.moveTo(-this.strokeLength, 0);
+        ctx.lineTo(0, - this.strokeLength);
+        ctx.stroke();
+        ctx.setTransform(oldTransform);
+    
     }
 
     loadOptions(){
@@ -181,6 +182,9 @@ class Generator{
         }else{
             height += this.xto * gap/2 + endOffset;
         }
+
+        width += this.numberSize * 2;
+        height += this.numberSize * 2;
         
 
         canvas.width  = width + this.margin*2;
@@ -211,7 +215,7 @@ class Generator{
             startY = this.zto * gap + endOffset + this.margin;
         }
 
-
+        startY += this.numberSize * 2;
         ctx.translate(startX, startY);
         write('0', -this.numberOffset/2, -this.numberOffset/2, this.numberSize * this.strokeWidth / 2)
     }
@@ -230,7 +234,7 @@ class Generator{
         }
         // positive x axis
         line(0, 0, -to*this.gap/2 - this.lineBuffer/2, to*this.gap/2 + this.lineBuffer/2);
-        arrow(endX, endY, 270-45);
+        this.arrow(endX, endY, 270-45);
         write(this.xSection.name, endX - this.nameOffset, endY + this.nameOffset, this.numberSize * this.strokeWidth / 2);
     
         for (let i = from; i <= to; i++) {
@@ -252,7 +256,7 @@ class Generator{
         }
         
         line(0, 0, to*this.gap + this.lineBuffer, 0);
-        arrow(endX, endY, 90);
+        this.arrow(endX, endY, 90);
         write(this.ySection.name, endX + this.nameOffset, endY, this.numberSize * this.strokeWidth / 2);
         
         for (let i = from; i <= to; i++) {
@@ -265,7 +269,7 @@ class Generator{
     zAxis(from, to){        
         const endY = -to*this.gap - this.lineBuffer;
         line(0, 0, 0, endY);
-        arrow(0, endY);
+        this.arrow(0, endY);
         write(this.zSection.name, 0, endY - this.nameOffset, this.numberSize * this.strokeWidth / 2)
         
         if(from > 0){

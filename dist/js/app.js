@@ -48,22 +48,6 @@ function cmInPixel(cm) {
 function convertCanvasToImage() {
     return canvas.toDataURL("image/png");
 }
-function arrow(x, y, deg) {
-    if (deg === void 0) { deg = 0; }
-    var rad = degreesToRadians(deg);
-    var oldTransform = ctx.getTransform();
-    ctx.translate(x, y);
-    ctx.rotate(rad);
-    ctx.beginPath();
-    ctx.moveTo(10, 0);
-    ctx.lineTo(0, -10);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(-10, 0);
-    ctx.lineTo(0, -10);
-    ctx.stroke();
-    ctx.setTransform(oldTransform);
-}
 function write(text, x, y, size) {
     if (size === void 0) { size = 20; }
     ctx.textAlign = 'center';
@@ -104,6 +88,7 @@ var Generator = /** @class */ (function () {
         this.strokeLength = this.strokeWidth * 1.75;
         this.numberOffset += this.strokeWidth + this.strokeLength * 2;
         this.nameOffset += this.strokeWidth;
+        this.nameOffset += this.numberSize + this.strokeLength;
         this.loadOptions();
         this.generate();
         this.sections.forEach(function (section) {
@@ -111,6 +96,22 @@ var Generator = /** @class */ (function () {
             section.section.addEventListener('input', _this.generate.bind(_this));
         });
     }
+    Generator.prototype.arrow = function (x, y, deg) {
+        if (deg === void 0) { deg = 0; }
+        var rad = degreesToRadians(deg);
+        var oldTransform = ctx.getTransform();
+        ctx.translate(x, y);
+        ctx.rotate(rad);
+        ctx.beginPath();
+        ctx.moveTo(this.strokeLength, 0);
+        ctx.lineTo(0, -this.strokeLength);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(-this.strokeLength, 0);
+        ctx.lineTo(0, -this.strokeLength);
+        ctx.stroke();
+        ctx.setTransform(oldTransform);
+    };
     Generator.prototype.loadOptions = function () {
         this.xSection = new Section(document.getElementById('x-axis'));
         this.ySection = new Section(document.getElementById('y-axis'));
@@ -169,6 +170,8 @@ var Generator = /** @class */ (function () {
         else {
             height += this.xto * gap / 2 + endOffset;
         }
+        width += this.numberSize * 2;
+        height += this.numberSize * 2;
         canvas.width = width + this.margin * 2;
         canvas.height = height + this.margin * 2;
     };
@@ -192,6 +195,7 @@ var Generator = /** @class */ (function () {
             // Z axis is higher
             startY = this.zto * gap + endOffset + this.margin;
         }
+        startY += this.numberSize * 2;
         ctx.translate(startX, startY);
         write('0', -this.numberOffset / 2, -this.numberOffset / 2, this.numberSize * this.strokeWidth / 2);
     };
@@ -208,7 +212,7 @@ var Generator = /** @class */ (function () {
         }
         // positive x axis
         line(0, 0, -to * this.gap / 2 - this.lineBuffer / 2, to * this.gap / 2 + this.lineBuffer / 2);
-        arrow(endX, endY, 270 - 45);
+        this.arrow(endX, endY, 270 - 45);
         write(this.xSection.name, endX - this.nameOffset, endY + this.nameOffset, this.numberSize * this.strokeWidth / 2);
         for (var i = from; i <= to; i++) {
             if (i == 0)
@@ -228,7 +232,7 @@ var Generator = /** @class */ (function () {
             line(0, 0, from * this.gap - this.lineBuffer, 0);
         }
         line(0, 0, to * this.gap + this.lineBuffer, 0);
-        arrow(endX, endY, 90);
+        this.arrow(endX, endY, 90);
         write(this.ySection.name, endX + this.nameOffset, endY, this.numberSize * this.strokeWidth / 2);
         for (var i = from; i <= to; i++) {
             if (i == 0)
@@ -241,7 +245,7 @@ var Generator = /** @class */ (function () {
     Generator.prototype.zAxis = function (from, to) {
         var endY = -to * this.gap - this.lineBuffer;
         line(0, 0, 0, endY);
-        arrow(0, endY);
+        this.arrow(0, endY);
         write(this.zSection.name, 0, endY - this.nameOffset, this.numberSize * this.strokeWidth / 2);
         if (from > 0) {
             from *= -1;
