@@ -207,7 +207,6 @@ async function copyImage(){
     await navigator.clipboard.write([
         new ClipboardItem({ 'image/png': blob })
     ]) 
-    alert('copied');
 }
 
 copyImage();
