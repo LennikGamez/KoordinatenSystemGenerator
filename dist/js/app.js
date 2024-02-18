@@ -84,7 +84,8 @@ var Section = /** @class */ (function () {
         this.section = section;
         this.name = section.querySelector('input[name="name"]').value.toLowerCase();
         this.step = parseFloat(section.querySelector('input[name="step"]').value);
-        this.units = parseFloat(section.querySelector('input[name="unit"]').value);
+        this.from = parseFloat(section.querySelector('input[name="unit-from"]').value);
+        this.to = Math.abs(parseFloat(section.querySelector('input[name="unit-to"]').value));
     }
     return Section;
 }());
@@ -112,9 +113,12 @@ var Generator = /** @class */ (function () {
         this.xSection = new Section(document.getElementById('x-axis'));
         this.ySection = new Section(document.getElementById('y-axis'));
         this.zSection = new Section(document.getElementById('z-axis'));
-        this.x = this.xSection.units;
-        this.y = this.ySection.units;
-        this.z = this.zSection.units;
+        this.xfrom = this.xSection.from;
+        this.xto = this.xSection.to;
+        this.yfrom = this.ySection.from;
+        this.yto = this.ySection.to;
+        this.zfrom = this.zSection.from;
+        this.zto = this.zSection.to;
         this.sections = [this.xSection, this.ySection, this.zSection];
     };
     Generator.prototype.generate = function () {
@@ -123,58 +127,129 @@ var Generator = /** @class */ (function () {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         this.gap = cmInPixel(this.gapInCm);
         this.lineBuffer = this.gap / 2;
-        this.calculateCanvasSize(this.gap, this.x, this.y, this.z, this.lineBuffer + this.nameOffset);
-        this.calculateOrigin(this.gap, this.x, this.z, this.lineBuffer + this.nameOffset);
+        this.calculateCanvasSize(this.gap, this.lineBuffer + this.nameOffset);
+        this.calculateOrigin(this.gap, this.xto, this.zto, this.lineBuffer + this.nameOffset);
         ctx.lineWidth = this.strokeWidth;
-        this.xAxis(this.x);
-        this.yAxis(this.y);
-        this.zAxis(this.z);
+        this.xAxis(this.xfrom, this.xto);
+        this.yAxis(this.yfrom, this.yto);
+        this.zAxis(this.zfrom, this.zto);
         drawImage();
     };
-    Generator.prototype.calculateCanvasSize = function (gap, x, y, z, endOffset) {
+    Generator.prototype.calculateCanvasSize = function (gap, endOffset) {
         // calculate canvas size to fit content
-        var width = x * gap / 2 + endOffset + y * gap + endOffset;
-        var height = z * gap + endOffset + x * gap / 2 + endOffset;
+        var width = 0;
+        var height = 0;
+        // check if x axis is more to the right than the y axis
+        if (Math.abs(this.xfrom) * gap / 2 > this.yto * gap) {
+            width += Math.abs(this.xfrom) * gap / 2 + endOffset;
+        }
+        else {
+            width += this.yto * gap + endOffset;
+        }
+        // check if y axis is more to the left than x axis
+        if (this.xto * gap / 2 > Math.abs(this.yfrom) * gap) {
+            width += this.xto * gap / 2 + endOffset;
+        }
+        else {
+            width += Math.abs(this.yfrom) * gap + endOffset;
+        }
+        // check if z axis is higher than x axis
+        if (this.zto * gap > Math.abs(this.xfrom) * gap / 2) {
+            height += this.zto * gap + endOffset;
+        }
+        else {
+            height += Math.abs(this.xfrom) * gap / 2 + endOffset;
+        }
+        // check if z axis is lower than x axis
+        if (Math.abs(this.zfrom) * gap > this.xto * gap / 2) {
+            height += Math.abs(this.zfrom) * gap + endOffset;
+        }
+        else {
+            height += this.xto * gap / 2 + endOffset;
+        }
         canvas.width = width + this.margin * 2;
         canvas.height = height + this.margin * 2;
     };
     Generator.prototype.calculateOrigin = function (gap, x, z, endOffset) {
+        var startX = 0;
+        var startY = 0;
         // calculate origin of coordinate system
-        var startX = x * gap / 2 + endOffset + this.margin;
-        var startY = z * gap + endOffset + this.margin;
+        if (-this.xto * gap / 2 < -Math.abs(this.yfrom) * gap) {
+            // X axis is more to the left
+            startX = this.xto * gap / 2 + endOffset + this.margin;
+        }
+        else {
+            // X axis is more to the right
+            startX = Math.abs(this.yfrom) * gap + endOffset + this.margin;
+        }
+        if (this.zto * gap < Math.abs(this.xfrom) * gap / 2) {
+            // Z axis is lower
+            startY = Math.abs(this.xfrom) * gap / 2 + endOffset + this.margin;
+        }
+        else {
+            // Z axis is higher
+            startY = this.zto * gap + endOffset + this.margin;
+        }
         ctx.translate(startX, startY);
         write('0', -12, 0, this.numberSize * this.strokeWidth / 2);
     };
-    Generator.prototype.xAxis = function (x) {
-        var endX = -x * this.gap / 2 - this.lineBuffer;
-        var endY = x * this.gap / 2 + this.lineBuffer;
-        line(0, 0, -x * this.gap / 2 - this.lineBuffer, x * this.gap / 2 + this.lineBuffer);
+    Generator.prototype.xAxis = function (from, to) {
+        var endX = -to * this.gap / 2 - this.lineBuffer / 2;
+        var endY = to * this.gap / 2 + this.lineBuffer / 2;
+        if (from > 0) {
+            from *= -1;
+        }
+        //negative x axis
+        if (from < 0) {
+            line(0, 0, -from * this.gap / 2 + this.lineBuffer / 2, from * this.gap / 2 - this.lineBuffer / 2);
+            console.log(from * this.gap + this.lineBuffer);
+        }
+        // positive x axis
+        line(0, 0, -to * this.gap / 2 - this.lineBuffer / 2, to * this.gap / 2 + this.lineBuffer / 2);
         arrow(endX, endY, 270 - 45);
         write(this.xSection.name, endX - this.nameOffset, endY + this.nameOffset, this.numberSize * this.strokeWidth / 2);
-        for (var i = 1; i <= x; i++) {
+        for (var i = from; i <= to; i++) {
+            if (i == 0)
+                continue;
             var stepSize = i * this.gap / 2;
             line(-stepSize - this.strokeLength, +stepSize - this.strokeLength, this.strokeLength * 2, this.strokeLength * 2);
             write((i * this.xSection.step).toString(), -stepSize + this.numberOffset, +stepSize + this.numberOffset, this.numberSize * this.strokeWidth / 2);
         }
     };
-    Generator.prototype.yAxis = function (y) {
-        var endX = 0 + y * this.gap + this.lineBuffer;
+    Generator.prototype.yAxis = function (from, to) {
+        var endX = 0 + to * this.gap + this.lineBuffer;
         var endY = 0;
-        line(0, 0, y * this.gap + this.lineBuffer, 0);
+        if (from > 0) {
+            from *= -1;
+        }
+        if (from < 0) {
+            line(0, 0, from * this.gap - this.lineBuffer, 0);
+        }
+        line(0, 0, to * this.gap + this.lineBuffer, 0);
         arrow(endX, endY, 90);
         write(this.ySection.name, endX + this.nameOffset, endY, this.numberSize * this.strokeWidth / 2);
-        for (var i = 1; i <= y; i++) {
+        for (var i = from; i <= to; i++) {
+            if (i == 0)
+                continue;
             var stepSize = i * this.gap;
             line(stepSize, -this.strokeLength, 0, this.strokeLength * 2);
             write((i * this.ySection.step).toString(), stepSize, +this.numberOffset, this.numberSize * this.strokeWidth / 2);
         }
     };
-    Generator.prototype.zAxis = function (z) {
-        var endY = -z * this.gap - this.lineBuffer;
+    Generator.prototype.zAxis = function (from, to) {
+        var endY = -to * this.gap - this.lineBuffer;
         line(0, 0, 0, endY);
         arrow(0, endY);
         write(this.zSection.name, 0, endY - this.nameOffset, this.numberSize * this.strokeWidth / 2);
-        for (var i = 1; i <= z; i++) {
+        if (from > 0) {
+            from *= -1;
+        }
+        if (from < 0) {
+            line(0, 0, 0, -from * this.gap + this.lineBuffer);
+        }
+        for (var i = from; i <= to; i++) {
+            if (i == 0)
+                continue;
             var stepSize = i * this.gap;
             line(-this.strokeLength, -stepSize, this.strokeLength * 2, 0);
             write((i * this.zSection.step).toString(), -this.numberOffset, -stepSize, this.numberSize * this.strokeWidth / 2);
@@ -201,7 +276,6 @@ function copyImage() {
                         ])];
                 case 3:
                     _a.sent();
-                    alert('copied');
                     return [2 /*return*/];
             }
         });

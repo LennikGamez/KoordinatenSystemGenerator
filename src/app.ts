@@ -56,13 +56,15 @@ class Section{
     section: HTMLDivElement;
     step: number = 1;
     name: string;
-    units: number;
+    from: number;
+    to: number;
 
     constructor(section: HTMLDivElement){
         this.section = section;
         this.name = (section.querySelector('input[name="name"]') as HTMLInputElement).value.toLowerCase();
         this.step = parseFloat((section.querySelector('input[name="step"]') as HTMLInputElement).value);
-        this.units = parseFloat((section.querySelector('input[name="unit"]') as HTMLInputElement).value);
+        this.from = parseFloat((section.querySelector('input[name="unit-from"]') as HTMLInputElement).value);
+        this.to = Math.abs(parseFloat((section.querySelector('input[name="unit-to"]') as HTMLInputElement).value));
     }
 }
 
@@ -83,9 +85,12 @@ class Generator{
     zSection: Section
 
     gapInCm: number;
-    x: number;
-    y: number;
-    z: number;
+    xfrom: number;
+    xto: number;
+    yfrom: number;
+    yto: number;
+    zfrom: number;
+    zto: number;
 
     sections: Array<Section>;
 
@@ -109,9 +114,14 @@ class Generator{
         this.ySection = new Section(document.getElementById('y-axis') as HTMLDivElement);
         this.zSection = new Section(document.getElementById('z-axis') as HTMLDivElement);
         
-        this.x = this.xSection.units;
-        this.y = this.ySection.units;
-        this.z = this.zSection.units;
+        this.xfrom = this.xSection.from;
+        this.xto = this.xSection.to;
+
+        this.yfrom = this.ySection.from;
+        this.yto = this.ySection.to;
+
+        this.zfrom = this.zSection.from;
+        this.zto = this.zSection.to;
         this.sections = [this.xSection, this.ySection, this.zSection];
     }
 
@@ -123,22 +133,53 @@ class Generator{
         this.gap = cmInPixel(this.gapInCm);
         this.lineBuffer = this.gap/2;
 
-        this.calculateCanvasSize(this.gap, this.x, this.y, this.z, this.lineBuffer + this.nameOffset);
-        this.calculateOrigin(this.gap, this.x, this.z, this.lineBuffer + this.nameOffset);
+        this.calculateCanvasSize(this.gap, this.lineBuffer + this.nameOffset);
+        this.calculateOrigin(this.gap, this.xto, this.zto, this.lineBuffer + this.nameOffset);
         ctx.lineWidth = this.strokeWidth;
 
-        this.xAxis(this.x);
-        this.yAxis(this.y);
-        this.zAxis(this.z);
+        this.xAxis(this.xfrom, this.xto);
+        this.yAxis(this.yfrom, this.yto);
+        this.zAxis(this.zfrom, this.zto);
 
         drawImage();
 
     }
 
-    calculateCanvasSize(gap, x, y, z, endOffset){
+    calculateCanvasSize(gap, endOffset){
         // calculate canvas size to fit content
-        const width = x*gap/2 + endOffset  + y*gap + endOffset;
-        const height = z*gap + endOffset + x*gap/2 + endOffset;
+        let width=0;
+        let height=0;
+
+        // check if x axis is more to the right than the y axis
+        if(Math.abs(this.xfrom) * gap/2 > this.yto * gap){
+                                       
+            width += Math.abs(this.xfrom)*gap/2 + endOffset;
+            
+        }else{
+            width += this.yto*gap + endOffset;
+        }
+
+        // check if y axis is more to the left than x axis
+        if(this.xto * gap/2 > Math.abs(this.yfrom) * gap){
+            width += this.xto * gap/2 + endOffset;
+        }else{
+            width += Math.abs(this.yfrom) * gap + endOffset;
+        }
+
+        // check if z axis is higher than x axis
+        if (this.zto * gap > Math.abs(this.xfrom)* gap/2){
+            height += this.zto * gap + endOffset;
+        }else{
+            height += Math.abs(this.xfrom) * gap/2 + endOffset;
+        }
+
+        // check if z axis is lower than x axis
+        if (Math.abs(this.zfrom) * gap > this.xto * gap/2){
+            height += Math.abs(this.zfrom) * gap + endOffset;
+        }else{
+            height += this.xto * gap/2 + endOffset;
+        }
+        
 
         canvas.width  = width + this.margin*2;
         canvas.height = height + this.margin*2;
@@ -146,50 +187,93 @@ class Generator{
     }
 
     calculateOrigin(gap, x, z, endOffset){
-
+        let startX = 0;
+        let startY = 0;
         // calculate origin of coordinate system
-        const startX = x*gap/2 + endOffset + this.margin;
-        const startY = z*gap + endOffset + this.margin;
+        if(-this.xto * gap/2 < -Math.abs(this.yfrom) * gap){
+            // X axis is more to the left
+            startX = this.xto * gap/2 + endOffset + this.margin;
+        }
+        else{
+            // X axis is more to the right
+            startX = Math.abs(this.yfrom) * gap + endOffset + this.margin;
+        }
+
+
+        if(this.zto * gap < Math.abs(this.xfrom) * gap/2){
+            // Z axis is lower
+            startY = Math.abs(this.xfrom) * gap/2 + endOffset + this.margin;
+        }
+        else{
+            // Z axis is higher
+            startY = this.zto * gap + endOffset + this.margin;
+        }
 
 
         ctx.translate(startX, startY);
         write('0', -12, 0, this.numberSize * this.strokeWidth / 2)
     }
-    xAxis(x){
-        const endX = -x * this.gap/2 - this.lineBuffer;
-        const endY = x * this.gap/2 + this.lineBuffer;
-    
-        line(0, 0, -x*this.gap/2 - this.lineBuffer, x*this.gap/2 + this.lineBuffer);
+    xAxis(from, to){
+        const endX = -to * this.gap/2 - this.lineBuffer/2;
+        const endY = to * this.gap/2 + this.lineBuffer/2;
+        
+        if (from > 0){
+            from *= -1
+        }
+        //negative x axis
+        if(from < 0){
+            line(0, 0, -from*this.gap/2 + this.lineBuffer/2, from*this.gap/2 - this.lineBuffer/2);
+            console.log(from*this.gap + this.lineBuffer);
+            
+        }
+        // positive x axis
+        line(0, 0, -to*this.gap/2 - this.lineBuffer/2, to*this.gap/2 + this.lineBuffer/2);
         arrow(endX, endY, 270-45);
         write(this.xSection.name, endX - this.nameOffset, endY + this.nameOffset, this.numberSize * this.strokeWidth / 2);
     
-        for (let i = 1; i <= x; i++) {
+        for (let i = from; i <= to; i++) {
+            if(i == 0) continue
             const stepSize: number = i*this.gap/2
             line(-stepSize - this.strokeLength, +stepSize - this.strokeLength, this.strokeLength*2, this.strokeLength*2)            
             write((i*this.xSection.step).toString(), -stepSize + this.numberOffset, +stepSize + this.numberOffset, this.numberSize * this.strokeWidth / 2)
         }
     }
-    yAxis(y){
-        const endX = 0 + y*this.gap + this.lineBuffer;
+    yAxis(from, to){
+        const endX = 0 + to*this.gap + this.lineBuffer;
         const endY = 0;
+
+        if(from > 0){
+            from *= -1
+        }
+        if (from < 0){
+            line(0, 0, from*this.gap - this.lineBuffer, 0);
+        }
         
-        line(0, 0, y*this.gap + this.lineBuffer, 0);
+        line(0, 0, to*this.gap + this.lineBuffer, 0);
         arrow(endX, endY, 90);
         write(this.ySection.name, endX + this.nameOffset, endY, this.numberSize * this.strokeWidth / 2);
         
-        for (let i = 1; i <= y; i++) {
+        for (let i = from; i <= to; i++) {
+            if(i == 0) continue
             const stepSize: number = i*this.gap;
             line(stepSize, -this.strokeLength, 0, this.strokeLength*2)
             write((i*this.ySection.step).toString(), stepSize, + this.numberOffset, this.numberSize * this.strokeWidth / 2)
         }
     }
-    zAxis(z){        
-        const endY = -z*this.gap - this.lineBuffer;
+    zAxis(from, to){        
+        const endY = -to*this.gap - this.lineBuffer;
         line(0, 0, 0, endY);
         arrow(0, endY);
         write(this.zSection.name, 0, endY - this.nameOffset, this.numberSize * this.strokeWidth / 2)
-    
-        for(let i = 1; i <= z; i++){
+        
+        if(from > 0){
+            from *= -1
+        }
+        if (from < 0){
+            line(0, 0, 0, -from*this.gap + this.lineBuffer);
+        }
+        for(let i = from; i <= to; i++){
+            if(i == 0) continue
             const stepSize: number = i*this.gap;
             line(-this.strokeLength, -stepSize, this.strokeLength*2, 0)
             write((i*this.zSection.step).toString(), -this.numberOffset, -stepSize, this.numberSize * this.strokeWidth / 2)
