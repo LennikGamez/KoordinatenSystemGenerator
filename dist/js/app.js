@@ -101,11 +101,13 @@ var Generator = /** @class */ (function () {
         this.gap = cmInPixel(gap);
         this.gapInCm = gap;
         this.strokeWidth = this.gapInCm;
-        this.numberOffset += this.strokeWidth + 5;
-        this.nameOffset += this.strokeWidth + 5;
+        this.strokeLength = this.strokeWidth * 1.75;
+        this.numberOffset += this.strokeWidth + this.strokeLength * 2;
+        this.nameOffset += this.strokeWidth;
         this.loadOptions();
         this.generate();
         this.sections.forEach(function (section) {
+            2;
             section.section.addEventListener('input', _this.generate.bind(_this));
         });
     }
@@ -191,7 +193,7 @@ var Generator = /** @class */ (function () {
             startY = this.zto * gap + endOffset + this.margin;
         }
         ctx.translate(startX, startY);
-        write('0', -12, 0, this.numberSize * this.strokeWidth / 2);
+        write('0', -this.numberOffset / 2, -this.numberOffset / 2, this.numberSize * this.strokeWidth / 2);
     };
     Generator.prototype.xAxis = function (from, to) {
         var endX = -to * this.gap / 2 - this.lineBuffer / 2;
@@ -213,7 +215,7 @@ var Generator = /** @class */ (function () {
                 continue;
             var stepSize = i * this.gap / 2;
             line(-stepSize - this.strokeLength, +stepSize - this.strokeLength, this.strokeLength * 2, this.strokeLength * 2);
-            write((i * this.xSection.step).toString(), -stepSize + this.numberOffset, +stepSize + this.numberOffset, this.numberSize * this.strokeWidth / 2);
+            write((i * this.xSection.step).toString(), -stepSize + this.numberOffset / 2, stepSize + this.numberOffset / 2, this.numberSize * this.strokeWidth / 2);
         }
     };
     Generator.prototype.yAxis = function (from, to) {
@@ -258,7 +260,7 @@ var Generator = /** @class */ (function () {
     return Generator;
 }());
 // drawSystem(2, 5, 6, 100);
-new Generator(5);
+new Generator(parseFloat(prompt("Centimeter per unit: ")));
 canvas.remove();
 function copyImage() {
     return __awaiter(this, void 0, void 0, function () {
