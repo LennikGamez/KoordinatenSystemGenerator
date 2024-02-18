@@ -84,7 +84,8 @@ var Section = /** @class */ (function () {
         this.section = section;
         this.name = section.querySelector('input[name="name"]').value.toLowerCase();
         this.step = parseFloat(section.querySelector('input[name="step"]').value);
-        this.units = parseFloat(section.querySelector('input[name="unit"]').value);
+        this.from = parseFloat(section.querySelector('input[name="unit-from"]').value);
+        this.to = parseFloat(section.querySelector('input[name="unit-to"]').value);
     }
     return Section;
 }());
@@ -112,9 +113,12 @@ var Generator = /** @class */ (function () {
         this.xSection = new Section(document.getElementById('x-axis'));
         this.ySection = new Section(document.getElementById('y-axis'));
         this.zSection = new Section(document.getElementById('z-axis'));
-        this.x = this.xSection.units;
-        this.y = this.ySection.units;
-        this.z = this.zSection.units;
+        this.xfrom = this.xSection.from;
+        this.xto = this.xSection.to;
+        this.yfrom = this.ySection.from;
+        this.yto = this.ySection.to;
+        this.zfrom = this.zSection.from;
+        this.zto = this.zSection.to;
         this.sections = [this.xSection, this.ySection, this.zSection];
     };
     Generator.prototype.generate = function () {
@@ -123,12 +127,12 @@ var Generator = /** @class */ (function () {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         this.gap = cmInPixel(this.gapInCm);
         this.lineBuffer = this.gap / 2;
-        this.calculateCanvasSize(this.gap, this.x, this.y, this.z, this.lineBuffer + this.nameOffset);
-        this.calculateOrigin(this.gap, this.x, this.z, this.lineBuffer + this.nameOffset);
+        this.calculateCanvasSize(this.gap, this.xto, this.yto, this.zto, this.lineBuffer + this.nameOffset);
+        this.calculateOrigin(this.gap, this.xto, this.zto, this.lineBuffer + this.nameOffset);
         ctx.lineWidth = this.strokeWidth;
-        this.xAxis(this.x);
-        this.yAxis(this.y);
-        this.zAxis(this.z);
+        this.xAxis(this.xfrom, this.xto);
+        this.yAxis(this.yto);
+        this.zAxis(this.zto);
         drawImage();
     };
     Generator.prototype.calculateCanvasSize = function (gap, x, y, z, endOffset) {
@@ -145,19 +149,28 @@ var Generator = /** @class */ (function () {
         ctx.translate(startX, startY);
         write('0', -12, 0, this.numberSize * this.strokeWidth / 2);
     };
-    Generator.prototype.xAxis = function (x) {
-        var endX = -x * this.gap / 2 - this.lineBuffer;
-        var endY = x * this.gap / 2 + this.lineBuffer;
-        line(0, 0, -x * this.gap / 2 - this.lineBuffer, x * this.gap / 2 + this.lineBuffer);
+    Generator.prototype.xAxis = function (from, to) {
+        var endX = -to * this.gap / 2 - this.lineBuffer / 2;
+        var endY = to * this.gap / 2 + this.lineBuffer / 2;
+        if (from > 0) {
+            from *= -1;
+        }
+        //negative x axis
+        if (from < 0) {
+            line(0, 0, -from * this.gap / 2 + this.lineBuffer / 2, from * this.gap / 2 - this.lineBuffer / 2);
+            console.log(from * this.gap + this.lineBuffer);
+        }
+        // positive x axis
+        line(0, 0, -to * this.gap / 2 - this.lineBuffer / 2, to * this.gap / 2 + this.lineBuffer / 2);
         arrow(endX, endY, 270 - 45);
         write(this.xSection.name, endX - this.nameOffset, endY + this.nameOffset, this.numberSize * this.strokeWidth / 2);
-        for (var i = 1; i <= x; i++) {
+        for (var i = from; i <= to; i++) {
             var stepSize = i * this.gap / 2;
             line(-stepSize - this.strokeLength, +stepSize - this.strokeLength, this.strokeLength * 2, this.strokeLength * 2);
             write((i * this.xSection.step).toString(), -stepSize + this.numberOffset, +stepSize + this.numberOffset, this.numberSize * this.strokeWidth / 2);
         }
     };
-    Generator.prototype.yAxis = function (y) {
+    Generator.prototype.yAxis = function (from, to) {
         var endX = 0 + y * this.gap + this.lineBuffer;
         var endY = 0;
         line(0, 0, y * this.gap + this.lineBuffer, 0);
@@ -201,7 +214,6 @@ function copyImage() {
                         ])];
                 case 3:
                     _a.sent();
-                    alert('copied');
                     return [2 /*return*/];
             }
         });
