@@ -138,7 +138,7 @@ class Generator{
         ctx.lineWidth = this.strokeWidth;
 
         this.xAxis(this.xfrom, this.xto);
-        this.yAxis(this.yto);
+        this.yAxis(this.yfrom, this.yto);
         this.zAxis(this.zto);
 
         drawImage();
@@ -184,32 +184,42 @@ class Generator{
         write(this.xSection.name, endX - this.nameOffset, endY + this.nameOffset, this.numberSize * this.strokeWidth / 2);
     
         for (let i = from; i <= to; i++) {
+            if(i == 0) continue
             const stepSize: number = i*this.gap/2
             line(-stepSize - this.strokeLength, +stepSize - this.strokeLength, this.strokeLength*2, this.strokeLength*2)            
             write((i*this.xSection.step).toString(), -stepSize + this.numberOffset, +stepSize + this.numberOffset, this.numberSize * this.strokeWidth / 2)
         }
     }
     yAxis(from, to){
-        const endX = 0 + y*this.gap + this.lineBuffer;
+        const endX = 0 + to*this.gap + this.lineBuffer;
         const endY = 0;
+
+        if(from > 0){
+            from *= -1
+        }
+        if (from < 0){
+            line(0, 0, from*this.gap - this.lineBuffer, 0);
+        }
         
-        line(0, 0, y*this.gap + this.lineBuffer, 0);
+        line(0, 0, to*this.gap + this.lineBuffer, 0);
         arrow(endX, endY, 90);
         write(this.ySection.name, endX + this.nameOffset, endY, this.numberSize * this.strokeWidth / 2);
         
-        for (let i = 1; i <= y; i++) {
+        for (let i = from; i <= to; i++) {
+            if(i == 0) continue
             const stepSize: number = i*this.gap;
             line(stepSize, -this.strokeLength, 0, this.strokeLength*2)
             write((i*this.ySection.step).toString(), stepSize, + this.numberOffset, this.numberSize * this.strokeWidth / 2)
         }
     }
-    zAxis(z){        
+    zAxis(from, to){        
         const endY = -z*this.gap - this.lineBuffer;
         line(0, 0, 0, endY);
         arrow(0, endY);
         write(this.zSection.name, 0, endY - this.nameOffset, this.numberSize * this.strokeWidth / 2)
     
         for(let i = 1; i <= z; i++){
+            if(i == 0) continue
             const stepSize: number = i*this.gap;
             line(-this.strokeLength, -stepSize, this.strokeLength*2, 0)
             write((i*this.zSection.step).toString(), -this.numberOffset, -stepSize, this.numberSize * this.strokeWidth / 2)
