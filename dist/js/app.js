@@ -132,7 +132,7 @@ var Generator = /** @class */ (function () {
         ctx.lineWidth = this.strokeWidth;
         this.xAxis(this.xfrom, this.xto);
         this.yAxis(this.yfrom, this.yto);
-        this.zAxis(this.zto);
+        this.zAxis(this.zfrom, this.zto);
         drawImage();
     };
     Generator.prototype.calculateCanvasSize = function (gap, x, y, z, endOffset) {
@@ -193,11 +193,17 @@ var Generator = /** @class */ (function () {
         }
     };
     Generator.prototype.zAxis = function (from, to) {
-        var endY = -z * this.gap - this.lineBuffer;
+        var endY = -to * this.gap - this.lineBuffer;
         line(0, 0, 0, endY);
         arrow(0, endY);
         write(this.zSection.name, 0, endY - this.nameOffset, this.numberSize * this.strokeWidth / 2);
-        for (var i = 1; i <= z; i++) {
+        if (from > 0) {
+            from *= -1;
+        }
+        if (from < 0) {
+            line(0, 0, 0, -from * this.gap + this.lineBuffer);
+        }
+        for (var i = from; i <= to; i++) {
             if (i == 0)
                 continue;
             var stepSize = i * this.gap;

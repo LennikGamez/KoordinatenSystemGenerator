@@ -139,7 +139,7 @@ class Generator{
 
         this.xAxis(this.xfrom, this.xto);
         this.yAxis(this.yfrom, this.yto);
-        this.zAxis(this.zto);
+        this.zAxis(this.zfrom, this.zto);
 
         drawImage();
 
@@ -213,12 +213,18 @@ class Generator{
         }
     }
     zAxis(from, to){        
-        const endY = -z*this.gap - this.lineBuffer;
+        const endY = -to*this.gap - this.lineBuffer;
         line(0, 0, 0, endY);
         arrow(0, endY);
         write(this.zSection.name, 0, endY - this.nameOffset, this.numberSize * this.strokeWidth / 2)
-    
-        for(let i = 1; i <= z; i++){
+        
+        if(from > 0){
+            from *= -1
+        }
+        if (from < 0){
+            line(0, 0, 0, -from*this.gap + this.lineBuffer);
+        }
+        for(let i = from; i <= to; i++){
             if(i == 0) continue
             const stepSize: number = i*this.gap;
             line(-this.strokeLength, -stepSize, this.strokeLength*2, 0)
