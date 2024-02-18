@@ -133,7 +133,7 @@ class Generator{
         this.gap = cmInPixel(this.gapInCm);
         this.lineBuffer = this.gap/2;
 
-        this.calculateCanvasSize(this.gap, this.xto, this.yto, this.zto, this.lineBuffer + this.nameOffset);
+        this.calculateCanvasSize(this.gap, this.lineBuffer + this.nameOffset);
         this.calculateOrigin(this.gap, this.xto, this.zto, this.lineBuffer + this.nameOffset);
         ctx.lineWidth = this.strokeWidth;
 
@@ -145,10 +145,41 @@ class Generator{
 
     }
 
-    calculateCanvasSize(gap, x, y, z, endOffset){
+    calculateCanvasSize(gap, endOffset){
         // calculate canvas size to fit content
-        const width = x*gap/2 + endOffset  + y*gap + endOffset;
-        const height = z*gap + endOffset + x*gap/2 + endOffset;
+        let width=0;
+        let height=0;
+
+        // check if x axis is more to the right than the y axis
+        if(Math.abs(this.xfrom) * gap/2 > this.yto * gap){
+                                       
+            width += Math.abs(this.xfrom)*gap/2 + endOffset;
+            
+        }else{
+            width += this.yto*gap + endOffset;
+        }
+
+        // check if y axis is more to the left than x axis
+        if(this.xto * gap/2 > Math.abs(this.yfrom) * gap){
+            width += this.xto * gap/2 + endOffset;
+        }else{
+            width += Math.abs(this.yfrom) * gap + endOffset;
+        }
+
+        // check if z axis is higher than x axis
+        if (this.zto * gap > Math.abs(this.xfrom)* gap/2){
+            height += this.zto * gap + endOffset;
+        }else{
+            height += Math.abs(this.xfrom) * gap/2 + endOffset;
+        }
+
+        // check if z axis is lower than x axis
+        if (Math.abs(this.zfrom) * gap > this.xto * gap/2){
+            height += Math.abs(this.zfrom) * gap + endOffset;
+        }else{
+            height += this.xto * gap/2 + endOffset;
+        }
+        
 
         canvas.width  = width + this.margin*2;
         canvas.height = height + this.margin*2;
@@ -156,10 +187,27 @@ class Generator{
     }
 
     calculateOrigin(gap, x, z, endOffset){
-
+        let startX = 0;
+        let startY = 0;
         // calculate origin of coordinate system
-        const startX = x*gap/2 + endOffset + this.margin;
-        const startY = z*gap + endOffset + this.margin;
+        if(-this.xto * gap/2 < -Math.abs(this.yfrom) * gap){
+            // X axis is more to the left
+            startX = this.xto * gap/2 + endOffset + this.margin;
+        }
+        else{
+            // X axis is more to the right
+            startX = Math.abs(this.yfrom) * gap + endOffset + this.margin;
+        }
+
+
+        if(this.zto * gap < Math.abs(this.xfrom) * gap/2){
+            // Z axis is lower
+            startY = Math.abs(this.xfrom) * gap/2 + endOffset + this.margin;
+        }
+        else{
+            // Z axis is higher
+            startY = this.zto * gap + endOffset + this.margin;
+        }
 
 
         ctx.translate(startX, startY);
