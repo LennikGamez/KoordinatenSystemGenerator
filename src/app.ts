@@ -1,3 +1,5 @@
+import Vector from './vector';
+
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const ctx: CanvasRenderingContext2D = canvas.getContext('2d');
 
