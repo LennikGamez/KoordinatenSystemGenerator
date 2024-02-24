@@ -107,6 +107,12 @@ export default class Vector{
         return null
     }
 
+    rotateBy(angle: number): Vector{
+        let x = this.x * Math.cos(angle) - this.y * Math.sin(angle);
+        let y = this.x * Math.sin(angle) + this.y * Math.cos(angle);
+        return new Vector(x, y);
+    }
+
     copy(): Vector{
         return new Vector(this.x, this.y);
     }
@@ -126,5 +132,9 @@ export default class Vector{
             return new Vector(0, 1)
         }
         return new Vector(this.x / vec_len, this.y / vec_len)
+    }
+
+    getAngle(): number{
+        return Math.atan2(this.y, this.x)
     }
 }

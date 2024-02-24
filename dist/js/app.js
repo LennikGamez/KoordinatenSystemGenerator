@@ -34,6 +34,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+import Vector from './vector.js';
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
 function line(x1, y1, x2, y2) {
@@ -41,6 +42,9 @@ function line(x1, y1, x2, y2) {
     ctx.moveTo(x1, y1);
     ctx.lineTo(x1 + x2, y1 + y2);
     ctx.stroke();
+}
+function drawVector(direction, length) {
+    line(0, 0, direction.x * length, direction.y * length);
 }
 function cmInPixel(cm) {
     return cm * 37.7952756;
@@ -96,9 +100,8 @@ var Generator = /** @class */ (function () {
             section.section.addEventListener('input', _this.generate.bind(_this));
         });
     }
-    Generator.prototype.arrow = function (x, y, deg) {
-        if (deg === void 0) { deg = 0; }
-        var rad = degreesToRadians(deg);
+    Generator.prototype.arrow = function (x, y, rad) {
+        if (rad === void 0) { rad = 0; }
         var oldTransform = ctx.getTransform();
         ctx.translate(x, y);
         ctx.rotate(rad);
@@ -133,9 +136,9 @@ var Generator = /** @class */ (function () {
         this.calculateCanvasSize(this.gap, this.lineBuffer + this.nameOffset);
         this.calculateOrigin(this.gap, this.xto, this.zto, this.lineBuffer + this.nameOffset);
         ctx.lineWidth = this.strokeWidth;
-        this.xAxis(this.xfrom, this.xto);
-        this.yAxis(this.yfrom, this.yto);
-        this.zAxis(this.zfrom, this.zto);
+        this.axis(new Vector(-1, 1), this.xfrom, this.xto, this.gap / 2, this.xSection.name);
+        this.axis(new Vector(1, 0), this.yfrom, this.yto, this.gap, this.ySection.name);
+        this.axis(new Vector(0, -1), this.zfrom, this.zto, this.gap, this.zSection.name);
         drawImage();
     };
     Generator.prototype.calculateCanvasSize = function (gap, endOffset) {
@@ -199,66 +202,30 @@ var Generator = /** @class */ (function () {
         ctx.translate(startX, startY);
         write('0', -this.numberOffset / 2, -this.numberOffset / 2, this.numberSize * this.strokeWidth / 2);
     };
-    Generator.prototype.xAxis = function (from, to) {
-        var endX = -to * this.gap / 2 - this.lineBuffer / 2;
-        var endY = to * this.gap / 2 + this.lineBuffer / 2;
+    Generator.prototype.axis = function (direction, from, to, gap, name) {
+        var lengthPositive = to * gap + this.lineBuffer / 2;
+        var lengthNegative = from * gap + this.lineBuffer / 2;
+        var end = direction.mult(lengthPositive);
         if (from > 0) {
             from *= -1;
         }
-        //negative x axis
-        if (from < 0) {
-            line(0, 0, -from * this.gap / 2 + this.lineBuffer / 2, from * this.gap / 2 - this.lineBuffer / 2);
-            console.log(from * this.gap + this.lineBuffer);
-        }
-        // positive x axis
-        line(0, 0, -to * this.gap / 2 - this.lineBuffer / 2, to * this.gap / 2 + this.lineBuffer / 2);
-        this.arrow(endX, endY, 270 - 45);
-        write(this.xSection.name, endX - this.nameOffset, endY + this.nameOffset, this.numberSize * this.strokeWidth / 2);
+        drawVector(direction, lengthPositive);
+        drawVector(direction.mult(-1), lengthNegative);
+        this.arrow(end.x, end.y, direction.getAngle() + Math.PI / 2);
+        write(name, end.x + this.nameOffset * direction.x, end.y + this.nameOffset * direction.y, this.numberSize * this.strokeWidth / 2);
         for (var i = from; i <= to; i++) {
             if (i == 0)
                 continue;
-            var stepSize = i * this.gap / 2;
-            line(-stepSize - this.strokeLength, +stepSize - this.strokeLength, this.strokeLength * 2, this.strokeLength * 2);
-            write((i * this.xSection.step).toString(), -stepSize + this.numberOffset / 2, stepSize + this.numberOffset / 2, this.numberSize * this.strokeWidth / 2);
-        }
-    };
-    Generator.prototype.yAxis = function (from, to) {
-        var endX = 0 + to * this.gap + this.lineBuffer;
-        var endY = 0;
-        if (from > 0) {
-            from *= -1;
-        }
-        if (from < 0) {
-            line(0, 0, from * this.gap - this.lineBuffer, 0);
-        }
-        line(0, 0, to * this.gap + this.lineBuffer, 0);
-        this.arrow(endX, endY, 90);
-        write(this.ySection.name, endX + this.nameOffset, endY, this.numberSize * this.strokeWidth / 2);
-        for (var i = from; i <= to; i++) {
-            if (i == 0)
-                continue;
-            var stepSize = i * this.gap;
-            line(stepSize, -this.strokeLength, 0, this.strokeLength * 2);
-            write((i * this.ySection.step).toString(), stepSize, +this.numberOffset, this.numberSize * this.strokeWidth / 2);
-        }
-    };
-    Generator.prototype.zAxis = function (from, to) {
-        var endY = -to * this.gap - this.lineBuffer;
-        line(0, 0, 0, endY);
-        this.arrow(0, endY);
-        write(this.zSection.name, 0, endY - this.nameOffset, this.numberSize * this.strokeWidth / 2);
-        if (from > 0) {
-            from *= -1;
-        }
-        if (from < 0) {
-            line(0, 0, 0, -from * this.gap + this.lineBuffer);
-        }
-        for (var i = from; i <= to; i++) {
-            if (i == 0)
-                continue;
-            var stepSize = i * this.gap;
-            line(-this.strokeLength, -stepSize, this.strokeLength * 2, 0);
-            write((i * this.zSection.step).toString(), -this.numberOffset, -stepSize, this.numberSize * this.strokeWidth / 2);
+            var step = direction.mult(i * gap);
+            var newVector = direction.rotateBy(Math.PI / 2);
+            line(step.x, step.y, newVector.x * this.strokeLength, newVector.y * this.strokeLength);
+            line(step.x, step.y, -newVector.x * this.strokeLength, -newVector.y * this.strokeLength);
+            if (direction.getAngle() == 0) {
+                write(i.toString(), step.x + newVector.x * this.numberOffset, step.y + newVector.y * this.numberOffset, this.numberSize * this.strokeWidth / 2);
+            }
+            else {
+                write(i.toString(), step.x - newVector.x * this.numberOffset, step.y - newVector.y * this.numberOffset, this.numberSize * this.strokeWidth / 2);
+            }
         }
     };
     return Generator;

@@ -106,6 +106,11 @@ var Vector = /** @class */ (function () {
         }
         return null;
     };
+    Vector.prototype.rotateBy = function (angle) {
+        var x = this.x * Math.cos(angle) - this.y * Math.sin(angle);
+        var y = this.x * Math.sin(angle) + this.y * Math.cos(angle);
+        return new Vector(x, y);
+    };
     Vector.prototype.copy = function () {
         return new Vector(this.x, this.y);
     };
@@ -121,6 +126,9 @@ var Vector = /** @class */ (function () {
             return new Vector(0, 1);
         }
         return new Vector(this.x / vec_len, this.y / vec_len);
+    };
+    Vector.prototype.getAngle = function () {
+        return Math.atan2(this.y, this.x);
     };
     return Vector;
 }());
