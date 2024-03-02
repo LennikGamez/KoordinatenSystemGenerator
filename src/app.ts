@@ -1,11 +1,17 @@
+import Vector from './vector.js';
+
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const ctx: CanvasRenderingContext2D = canvas.getContext('2d');
 
-function line(x1: number, y1: number, x2: number, y2: number) {
+function line(x1: number, y1: number, x2: number, y2: number): void {
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x1 + x2, y1 + y2);
     ctx.stroke();
+}
+
+function drawVector(direction, length): void{
+    line(0, 0, direction.x * length, direction.y * length);
 }
 
 function cmInPixel(cm: number){
@@ -55,8 +61,8 @@ class Generator{
     margin: number = 20;
     nameOffset: number = 20;
     strokeLength: number = 5;
-    numberOffset: number = 15;
-    numberSize: number = 15;
+    numberOffset: number = 10;
+    numberSize: number = 20;
     gap: number;
     lineBuffer: number;
 
@@ -66,7 +72,6 @@ class Generator{
 
     zSection: Section
 
-    gapInCm: number;
     xfrom: number;
     xto: number;
     yfrom: number;
@@ -77,12 +82,11 @@ class Generator{
     sections: Array<Section>;
 
     strokeWidth = ctx.lineWidth;
-    constructor(gap: number){
-        this.gap = cmInPixel(gap);
-        this.gapInCm = gap;
-        this.strokeWidth = this.gapInCm;
+    constructor(){
+        this.gap = cmInPixel(3);
+        this.strokeWidth = 2.5;
         this.strokeLength = this.strokeWidth * 1.75;
-        this.numberOffset += this.strokeWidth + this.strokeLength * 2
+        this.numberOffset = this.strokeLength + 20;
         this.nameOffset += this.strokeWidth;
         this.nameOffset += this.numberSize + this.strokeLength;
         this.loadOptions();
@@ -93,8 +97,7 @@ class Generator{
         });
     }
 
-    arrow(x: number, y: number, deg: number = 0) {
-        const rad = degreesToRadians(deg);
+    arrow(x: number, y: number, rad: number = 0) {
         const oldTransform = ctx.getTransform();
     
         ctx.translate(x, y);
@@ -133,16 +136,15 @@ class Generator{
         this.loadOptions();
         ctx.resetTransform();
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        this.gap = cmInPixel(this.gapInCm);
         this.lineBuffer = this.gap/2;
 
-        this.calculateCanvasSize(this.gap, this.lineBuffer + this.nameOffset);
-        this.calculateOrigin(this.gap, this.xto, this.zto, this.lineBuffer + this.nameOffset);
+        this.calculateCanvasSize(this.gap, this.lineBuffer);
+        this.calculateOrigin(this.gap, this.lineBuffer);
         ctx.lineWidth = this.strokeWidth;
 
-        this.xAxis(this.xfrom, this.xto);
-        this.yAxis(this.yfrom, this.yto);
-        this.zAxis(this.zfrom, this.zto);
+        this.axis(new Vector(-1, 1), this.xfrom, this.xto, this.gap/2, this.xSection.name);
+        this.axis(new Vector(1, 0), this.yfrom, this.yto, this.gap, this.ySection.name);
+        this.axis(new Vector(0, -1), this.zfrom, this.zto, this.gap, this.zSection.name);
 
         drawImage();
 
@@ -192,7 +194,7 @@ class Generator{
         
     }
 
-    calculateOrigin(gap, x, z, endOffset){
+    calculateOrigin(gap, endOffset){
         let startX = 0;
         let startY = 0;
         // calculate origin of coordinate system
@@ -219,76 +221,40 @@ class Generator{
         ctx.translate(startX, startY);
         write('0', -this.numberOffset/2, -this.numberOffset/2, this.numberSize * this.strokeWidth / 2)
     }
-    xAxis(from, to){
-        const endX = -to * this.gap/2 - this.lineBuffer/2;
-        const endY = to * this.gap/2 + this.lineBuffer/2;
-        
-        if (from > 0){
-            from *= -1
-        }
-        //negative x axis
-        if(from < 0){
-            line(0, 0, -from*this.gap/2 + this.lineBuffer/2, from*this.gap/2 - this.lineBuffer/2);
-            console.log(from*this.gap + this.lineBuffer);
-            
-        }
-        // positive x axis
-        line(0, 0, -to*this.gap/2 - this.lineBuffer/2, to*this.gap/2 + this.lineBuffer/2);
-        this.arrow(endX, endY, 270-45);
-        write(this.xSection.name, endX - this.nameOffset, endY + this.nameOffset, this.numberSize * this.strokeWidth / 2);
-    
-        for (let i = from; i <= to; i++) {
-            if(i == 0) continue
-            const stepSize: number = i*this.gap/2
-            line(-stepSize - this.strokeLength, +stepSize - this.strokeLength, this.strokeLength*2, this.strokeLength*2)            
-            write((i*this.xSection.step).toString(), -stepSize + this.numberOffset / 2, stepSize + this.numberOffset / 2, this.numberSize * this.strokeWidth / 2)
-        }
-    }
-    yAxis(from, to){
-        const endX = 0 + to*this.gap + this.lineBuffer;
-        const endY = 0;
 
-        if(from > 0){
-            from *= -1
+    axis(direction, from, to, gap, name): void{
+        const lengthPositive = to * gap + this.lineBuffer/2;
+        const lengthNegative = from * gap + this.lineBuffer/2;
+        const end: Vector = direction.mult(lengthPositive);
+
+        if (from > 0){
+            from *= -1;
         }
-        if (from < 0){
-            line(0, 0, from*this.gap - this.lineBuffer, 0);
-        }
-        
-        line(0, 0, to*this.gap + this.lineBuffer, 0);
-        this.arrow(endX, endY, 90);
-        write(this.ySection.name, endX + this.nameOffset, endY, this.numberSize * this.strokeWidth / 2);
-        
+
+        drawVector(direction, lengthPositive);
+        drawVector(direction.mult(-1), lengthNegative);
+
+        this.arrow(end.x, end.y, direction.getAngle() + Math.PI/2);
+        write(name, end.x + this.nameOffset * direction.x, end.y + this.nameOffset * direction.y, this.numberSize * this.strokeWidth / 2);
+
         for (let i = from; i <= to; i++) {
             if(i == 0) continue
-            const stepSize: number = i*this.gap;
-            line(stepSize, -this.strokeLength, 0, this.strokeLength*2)
-            write((i*this.ySection.step).toString(), stepSize, + this.numberOffset, this.numberSize * this.strokeWidth / 2)
+            const step = direction.mult(i * gap);
+            const newVector = direction.rotateBy(Math.PI/2);
+            line(step.x, step.y, newVector.x * this.strokeLength, newVector.y * this.strokeLength);
+            line(step.x, step.y, -newVector.x * this.strokeLength, -newVector.y * this.strokeLength);
+
+            if (direction.getAngle() == 0){
+                write(i.toString(), step.x + newVector.x * this.numberOffset, step.y + newVector.y * this.numberOffset, this.numberSize * this.strokeWidth / 2);
+            }else{;
+                write(i.toString(), step.x - newVector.x * this.numberOffset/2, step.y - newVector.y * this.numberOffset/2, this.numberSize * this.strokeWidth / 2);
+            }
         }
     }
-    zAxis(from, to){        
-        const endY = -to*this.gap - this.lineBuffer;
-        line(0, 0, 0, endY);
-        this.arrow(0, endY);
-        write(this.zSection.name, 0, endY - this.nameOffset, this.numberSize * this.strokeWidth / 2)
-        
-        if(from > 0){
-            from *= -1
-        }
-        if (from < 0){
-            line(0, 0, 0, -from*this.gap + this.lineBuffer);
-        }
-        for(let i = from; i <= to; i++){
-            if(i == 0) continue
-            const stepSize: number = i*this.gap;
-            line(-this.strokeLength, -stepSize, this.strokeLength*2, 0)
-            write((i*this.zSection.step).toString(), -this.numberOffset, -stepSize, this.numberSize * this.strokeWidth / 2)
-        }
-    }
+
 }
 
-// drawSystem(2, 5, 6, 100);
-new Generator(parseFloat(prompt("Centimeter per unit: ")));
+new Generator();
 canvas.remove();
 
 async function copyImage(){
