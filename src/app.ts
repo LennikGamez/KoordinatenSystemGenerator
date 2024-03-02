@@ -290,5 +290,3 @@ async function copyImage(){
         new ClipboardItem({ 'image/png': blob })
     ]) 
 }
-
-copyImage();
