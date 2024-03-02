@@ -79,6 +79,7 @@ var Section = /** @class */ (function () {
 }());
 var Generator = /** @class */ (function () {
     function Generator() {
+        var _this = this;
         this.margin = 20;
         this.nameOffset = 20;
         this.strokeLength = 5;
@@ -94,10 +95,12 @@ var Generator = /** @class */ (function () {
         this.nameOffset += this.numberSize + this.strokeLength;
         this.loadOptions();
         this.generate();
-        var options = document.getElementById('options').children;
-        for (var i = 0; i < options.length; i++) {
-            console.log(options[i]);
-            options[i].addEventListener('input', this.generate.bind(this));
+        this.sections.forEach(function (section) {
+            section.section.addEventListener('input', _this.generate.bind(_this));
+        });
+        var looksection = document.getElementById('look-section').children;
+        for (var i = 0; i < looksection.length; i++) {
+            looksection[i].addEventListener('input', this.generate.bind(this));
         }
     }
     Generator.prototype.arrow = function (x, y, rad) {

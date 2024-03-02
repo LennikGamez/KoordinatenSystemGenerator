@@ -97,10 +97,14 @@ class Generator{
         this.loadOptions();
 
         this.generate();
-        let options = document.getElementById('options').children;
-        for (let i = 0; i < options.length; i++){
-            console.log(options[i]);
-            options[i].addEventListener('input', this.generate.bind(this));
+
+        this.sections.forEach(section => {
+            section.section.addEventListener('input', this.generate.bind(this));
+        })
+
+        let looksection = document.getElementById('look-section').children;
+        for (let i = 0; i < looksection.length; i++){
+            looksection[i].addEventListener('input', this.generate.bind(this));
         }
     }
 
