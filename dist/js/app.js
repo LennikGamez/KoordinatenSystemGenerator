@@ -79,13 +79,13 @@ var Section = /** @class */ (function () {
 }());
 var Generator = /** @class */ (function () {
     function Generator() {
-        var _this = this;
         this.margin = 20;
         this.nameOffset = 20;
         this.strokeLength = 5;
         this.numberOffset = 10;
         this.numberSize = 20;
         this.strokeWidth = ctx.lineWidth;
+        this.lookSection = document.getElementById('look-section');
         this.gap = cmInPixel(3);
         this.strokeWidth = 2.5;
         this.strokeLength = this.strokeWidth * 1.75;
@@ -94,10 +94,11 @@ var Generator = /** @class */ (function () {
         this.nameOffset += this.numberSize + this.strokeLength;
         this.loadOptions();
         this.generate();
-        this.sections.forEach(function (section) {
-            2;
-            section.section.addEventListener('input', _this.generate.bind(_this));
-        });
+        var options = document.getElementById('options').children;
+        for (var i = 0; i < options.length; i++) {
+            console.log(options[i]);
+            options[i].addEventListener('input', this.generate.bind(this));
+        }
     }
     Generator.prototype.arrow = function (x, y, rad) {
         if (rad === void 0) { rad = 0; }
@@ -125,6 +126,10 @@ var Generator = /** @class */ (function () {
         this.zfrom = this.zSection.from;
         this.zto = this.zSection.to;
         this.sections = [this.xSection, this.ySection, this.zSection];
+        this.loadLookSection();
+    };
+    Generator.prototype.loadLookSection = function () {
+        this.color = document.getElementById('color').value;
     };
     Generator.prototype.generate = function () {
         this.loadOptions();
@@ -133,6 +138,8 @@ var Generator = /** @class */ (function () {
         this.lineBuffer = this.gap / 2;
         this.calculateCanvasSize(this.gap, this.lineBuffer);
         this.calculateOrigin(this.gap, this.lineBuffer);
+        this.setColor(this.color);
+        write('0', -this.numberOffset / 2, -this.numberOffset / 2, this.numberSize * this.strokeWidth / 2);
         ctx.lineWidth = this.strokeWidth;
         this.axis(new Vector(-1, 1), this.xfrom, this.xto, this.gap / 2, this.xSection.name);
         this.axis(new Vector(1, 0), this.yfrom, this.yto, this.gap, this.ySection.name);
@@ -198,7 +205,10 @@ var Generator = /** @class */ (function () {
         }
         startY += this.numberSize * 2;
         ctx.translate(startX, startY);
-        write('0', -this.numberOffset / 2, -this.numberOffset / 2, this.numberSize * this.strokeWidth / 2);
+    };
+    Generator.prototype.setColor = function (color) {
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
     };
     Generator.prototype.axis = function (direction, from, to, gap, name) {
         var lengthPositive = to * gap + this.lineBuffer / 2;
