@@ -78,19 +78,18 @@ var Section = /** @class */ (function () {
     return Section;
 }());
 var Generator = /** @class */ (function () {
-    function Generator(gap) {
+    function Generator() {
         var _this = this;
         this.margin = 20;
         this.nameOffset = 20;
         this.strokeLength = 5;
-        this.numberOffset = 15;
-        this.numberSize = 15;
+        this.numberOffset = 10;
+        this.numberSize = 20;
         this.strokeWidth = ctx.lineWidth;
-        this.gap = cmInPixel(gap);
-        this.gapInCm = gap;
-        this.strokeWidth = this.gapInCm;
+        this.gap = cmInPixel(3);
+        this.strokeWidth = 2.5;
         this.strokeLength = this.strokeWidth * 1.75;
-        this.numberOffset += this.strokeWidth + this.strokeLength * 2;
+        this.numberOffset = this.strokeLength + 20;
         this.nameOffset += this.strokeWidth;
         this.nameOffset += this.numberSize + this.strokeLength;
         this.loadOptions();
@@ -131,10 +130,9 @@ var Generator = /** @class */ (function () {
         this.loadOptions();
         ctx.resetTransform();
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        this.gap = cmInPixel(this.gapInCm);
         this.lineBuffer = this.gap / 2;
-        this.calculateCanvasSize(this.gap, this.lineBuffer + this.nameOffset);
-        this.calculateOrigin(this.gap, this.xto, this.zto, this.lineBuffer + this.nameOffset);
+        this.calculateCanvasSize(this.gap, this.lineBuffer);
+        this.calculateOrigin(this.gap, this.lineBuffer);
         ctx.lineWidth = this.strokeWidth;
         this.axis(new Vector(-1, 1), this.xfrom, this.xto, this.gap / 2, this.xSection.name);
         this.axis(new Vector(1, 0), this.yfrom, this.yto, this.gap, this.ySection.name);
@@ -178,7 +176,7 @@ var Generator = /** @class */ (function () {
         canvas.width = width + this.margin * 2;
         canvas.height = height + this.margin * 2;
     };
-    Generator.prototype.calculateOrigin = function (gap, x, z, endOffset) {
+    Generator.prototype.calculateOrigin = function (gap, endOffset) {
         var startX = 0;
         var startY = 0;
         // calculate origin of coordinate system
@@ -224,14 +222,14 @@ var Generator = /** @class */ (function () {
                 write(i.toString(), step.x + newVector.x * this.numberOffset, step.y + newVector.y * this.numberOffset, this.numberSize * this.strokeWidth / 2);
             }
             else {
-                write(i.toString(), step.x - newVector.x * this.numberOffset, step.y - newVector.y * this.numberOffset, this.numberSize * this.strokeWidth / 2);
+                ;
+                write(i.toString(), step.x - newVector.x * this.numberOffset / 2, step.y - newVector.y * this.numberOffset / 2, this.numberSize * this.strokeWidth / 2);
             }
         }
     };
     return Generator;
 }());
-// drawSystem(2, 5, 6, 100);
-new Generator(parseFloat(prompt("Centimeter per unit: ")));
+new Generator();
 canvas.remove();
 function copyImage() {
     return __awaiter(this, void 0, void 0, function () {
