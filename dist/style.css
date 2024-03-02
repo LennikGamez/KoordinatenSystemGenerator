@@ -20,6 +20,9 @@ body{
 
 #options > div{
     display: flex;
-    gap: 10px;
+    gap: 20px;
+}
 
+#look-section{
+    margin-top: 30px;
 }

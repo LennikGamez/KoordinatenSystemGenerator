@@ -80,9 +80,14 @@ class Generator{
     zto: number;
 
     sections: Array<Section>;
+    lookSection: HTMLDivElement;
+
+    color: string;
 
     strokeWidth = ctx.lineWidth;
     constructor(){
+        this.lookSection = document.getElementById('look-section') as HTMLDivElement;
+
         this.gap = cmInPixel(3);
         this.strokeWidth = 2.5;
         this.strokeLength = this.strokeWidth * 1.75;
@@ -92,9 +97,15 @@ class Generator{
         this.loadOptions();
 
         this.generate();
-        this.sections.forEach(section => {2
-            section.section.addEventListener('input', this.generate.bind(this))
-        });
+
+        this.sections.forEach(section => {
+            section.section.addEventListener('input', this.generate.bind(this));
+        })
+
+        let looksection = document.getElementById('look-section').children;
+        for (let i = 0; i < looksection.length; i++){
+            looksection[i].addEventListener('input', this.generate.bind(this));
+        }
     }
 
     arrow(x: number, y: number, rad: number = 0) {
@@ -129,18 +140,29 @@ class Generator{
         this.zfrom = this.zSection.from;
         this.zto = this.zSection.to;
         this.sections = [this.xSection, this.ySection, this.zSection];
+
+        this.loadLookSection();
+    }
+
+    loadLookSection(){
+        this.color = (document.getElementById('color') as HTMLInputElement).value;
     }
 
     generate(){
         
-        this.loadOptions();
+        this.loadOptions();        
+
         ctx.resetTransform();
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         this.lineBuffer = this.gap/2;
 
         this.calculateCanvasSize(this.gap, this.lineBuffer);
         this.calculateOrigin(this.gap, this.lineBuffer);
+
+        this.setColor(this.color);
+        write('0', -this.numberOffset/2, -this.numberOffset/2, this.numberSize * this.strokeWidth / 2)
         ctx.lineWidth = this.strokeWidth;
+
 
         this.axis(new Vector(-1, 1), this.xfrom, this.xto, this.gap/2, this.xSection.name);
         this.axis(new Vector(1, 0), this.yfrom, this.yto, this.gap, this.ySection.name);
@@ -219,7 +241,11 @@ class Generator{
 
         startY += this.numberSize * 2;
         ctx.translate(startX, startY);
-        write('0', -this.numberOffset/2, -this.numberOffset/2, this.numberSize * this.strokeWidth / 2)
+    }
+
+    setColor(color: string){
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
     }
 
     axis(direction, from, to, gap, name): void{
