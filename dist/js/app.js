@@ -265,3 +265,4 @@ function copyImage() {
         });
     });
 }
+document.getElementById('copy').addEventListener('click', copyImage);

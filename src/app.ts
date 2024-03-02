@@ -290,3 +290,5 @@ async function copyImage(){
         new ClipboardItem({ 'image/png': blob })
     ]) 
 }
+
+document.getElementById('copy').addEventListener('click', copyImage);
