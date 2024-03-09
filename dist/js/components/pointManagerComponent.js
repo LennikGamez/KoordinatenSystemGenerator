@@ -1,12 +1,14 @@
-class PointElement extends HTMLElement {
+class PointManager extends HTMLElement {
     shadowRoot;
+    points = [];
     constructor() {
         super();
         this.shadowRoot = this.attachShadow({ mode: 'open' });
+        this.points = [];
     }
     html() {
         return /*html*/ `
-            
+        
         `;
     }
     css() {
@@ -15,4 +17,3 @@ class PointElement extends HTMLElement {
         `;
     }
 }
-customElements.define('point-element', PointElement);
