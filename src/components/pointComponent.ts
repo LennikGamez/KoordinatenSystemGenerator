@@ -7,6 +7,14 @@ export default class PointElement extends HTMLElement{
         this.html();
         this.css();
     }
+    
+    getPoint(): {x: number, y: number, z: number}{
+        return {
+            x: Number((this.shadowRoot.querySelector('.x') as HTMLInputElement).value),
+            y: Number((this.shadowRoot.querySelector('.y') as HTMLInputElement).value),
+            z: Number((this.shadowRoot.querySelector('.z') as HTMLInputElement).value),
+        }
+    }
 
     html() {
         this.shadowRoot.innerHTML += /*html*/`

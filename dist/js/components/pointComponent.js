@@ -6,6 +6,13 @@ export default class PointElement extends HTMLElement {
         this.html();
         this.css();
     }
+    getPoint() {
+        return {
+            x: Number(this.shadowRoot.querySelector('.x').value),
+            y: Number(this.shadowRoot.querySelector('.y').value),
+            z: Number(this.shadowRoot.querySelector('.z').value),
+        };
+    }
     html() {
         this.shadowRoot.innerHTML += /*html*/ `
             <input type=number class="x" placeholder='X'></input>   

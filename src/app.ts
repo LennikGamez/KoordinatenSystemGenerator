@@ -1,5 +1,6 @@
-import PointElement from './components/pointComponent.js';
 import Vector from './vector.js';
+import PointManager from'./components/pointManagerComponent.js';
+import {Point} from './types.js';
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const ctx: CanvasRenderingContext2D = canvas.getContext('2d');
@@ -41,6 +42,10 @@ function drawImage(){
 
 }
 
+function convert3dTo2d(x: number, y: number, z: number){
+    return new Vector(y-x, z+x);
+}
+
 class Section{
     section: HTMLDivElement;
     step: number = 1;
@@ -80,6 +85,8 @@ class Generator{
     zfrom: number;
     zto: number;
 
+    points: Point[] = [];
+
     sections: Array<Section>;
     lookSection: HTMLDivElement;
 
@@ -107,6 +114,10 @@ class Generator{
         for (let i = 0; i < looksection.length; i++){
             looksection[i].addEventListener('input', this.generate.bind(this));
         }
+        
+        // document.querySelector('point-manager').addEventListener('changeevent', ()=>console.log('changed'));
+        document.querySelector('point-manager').addEventListener('changeevent', this.generate.bind(this));
+        
     }
 
     arrow(x: number, y: number, rad: number = 0) {
@@ -143,13 +154,18 @@ class Generator{
         this.sections = [this.xSection, this.ySection, this.zSection];
 
         this.loadLookSection();
+        this.loadPoints();
+    }
+
+    loadPoints(): void{
+        this.points = (document.querySelector('point-manager') as PointManager).getPoints();
     }
 
     loadLookSection(){
         this.color = (document.getElementById('color') as HTMLInputElement).value;
     }
 
-    generate(points: Array<PointElement> = []){
+    generate(){
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
         this.loadOptions();        
@@ -170,10 +186,33 @@ class Generator{
         this.axis(new Vector(1, 0), this.yfrom, this.yto, this.gap, this.ySection.name);
         this.axis(new Vector(0, -1), this.zfrom, this.zto, this.gap, this.zSection.name);
 
+        this.drawPoints();
+
+
         drawImage();
 
     }
 
+    drawPoints(){
+        this.points.forEach(point => {
+            const {x, y, z} = point;
+            this.drawPoint(x, y, z);
+        })
+    }
+
+    drawPoint(x: number, y: number, z: number){
+        const dx = x*this.gap/2;
+        const dy = y*this.gap;
+        const dz = -z*this.gap;
+        console.log(dx, dy, dz);
+        
+        const position2D = convert3dTo2d(dx, dy, dz);
+
+        this.setColor('green');
+        line(position2D.x-10, position2D.y-10, 20, 20);
+        line(position2D.x-10, position2D.y+10, 20, -20);
+
+    }
     calculateCanvasSize(gap, endOffset){
         // calculate canvas size to fit content
         let width=0;
@@ -282,15 +321,20 @@ class Generator{
 
 }
 
-new Generator();
-canvas.remove();
+document.addEventListener('DOMContentLoaded', () => {
+    new Generator()
+    canvas.remove();
 
-async function copyImage(){
-    const data = await fetch(convertCanvasToImage());
-    const blob = await data.blob();
-    await navigator.clipboard.write([
-        new ClipboardItem({ 'image/png': blob })
-    ]) 
-}
+    async function copyImage(){
+        const data = await fetch(convertCanvasToImage());
+        const blob = await data.blob();
+        await navigator.clipboard.write([
+            new ClipboardItem({ 'image/png': blob })
+        ]) 
+    }
+    
+    document.getElementById('copy').addEventListener('click', copyImage);
 
-document.getElementById('copy').addEventListener('click', copyImage);
+
+
+});

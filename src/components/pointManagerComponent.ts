@@ -1,6 +1,9 @@
 import PointElement from "./pointComponent.js";
+import { Point } from "../types.js";
 
-class PointManager extends HTMLElement {
+const changeEvent = new CustomEvent('changeevent');
+
+export default class PointManager extends HTMLElement {
     shadowRoot: ShadowRoot;
     points: PointElement[] = [];
     constructor() {
@@ -16,28 +19,37 @@ class PointManager extends HTMLElement {
 
     addPoint(){
         const point = new PointElement();
-        console.log("dad");
         
         this.shadowRoot.getElementById('points').appendChild(point);
         this.points.push(point);
 
         // delete the point
         point.shadowRoot.querySelector(".delete").addEventListener('click', ()=>{
-            this.shadowRoot.getElementById('points').removeChild(point);
+            this.shadowRoot.getElementById('points').removeChild(point)
+            this.points = this.points.filter((p) => p !== point);
+            
+            this.dispatchEvent(changeEvent);
         });
 
         // update the point with new values if values changed
         point.shadowRoot.querySelectorAll('.x, .y, .z').forEach((input)=>{
-            input.addEventListener('change', ()=>{
+            input.addEventListener('change', ()=>{                
+                this.dispatchEvent(changeEvent);
             })
         })
     }
 
+    getPoints(): Point[] {
+        const pointList: Point[] = [];
+        this.points.forEach((point)=>{
+            pointList.push(point.getPoint());
+        })
+        return pointList;
+    }
+
     html(){
         this.shadowRoot.innerHTML += /*html*/`
-        <div id='points'>
-
-        </div>
+        <div id='points'></div>
         <button id="add-point">Add Point</button>
         `
     }
@@ -47,9 +59,11 @@ class PointManager extends HTMLElement {
             #points{
                 display: flex;
                 gap: 10px;
+                flex-direction: column;
             }
+
         `+'</style>'
     }
 }
 
-customElements.define('point-component', PointManager) 
+customElements.define('point-manager', PointManager) 

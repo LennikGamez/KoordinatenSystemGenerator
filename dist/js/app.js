@@ -29,6 +29,9 @@ function drawImage() {
     let x = convertCanvasToImage();
     document.querySelector('#display').setAttribute('src', x);
 }
+function convert3dTo2d(x, y, z) {
+    return new Vector(y - x, z + x);
+}
 class Section {
     section;
     step = 1;
@@ -60,6 +63,7 @@ class Generator {
     yto;
     zfrom;
     zto;
+    points = [];
     sections;
     lookSection;
     color;
@@ -81,6 +85,8 @@ class Generator {
         for (let i = 0; i < looksection.length; i++) {
             looksection[i].addEventListener('input', this.generate.bind(this));
         }
+        // document.querySelector('point-manager').addEventListener('changeevent', ()=>console.log('changed'));
+        document.querySelector('point-manager').addEventListener('changeevent', this.generate.bind(this));
     }
     arrow(x, y, rad = 0) {
         const oldTransform = ctx.getTransform();
@@ -108,11 +114,15 @@ class Generator {
         this.zto = this.zSection.to;
         this.sections = [this.xSection, this.ySection, this.zSection];
         this.loadLookSection();
+        this.loadPoints();
+    }
+    loadPoints() {
+        this.points = document.querySelector('point-manager').getPoints();
     }
     loadLookSection() {
         this.color = document.getElementById('color').value;
     }
-    generate(points = []) {
+    generate() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         this.loadOptions();
         ctx.resetTransform();
@@ -126,7 +136,24 @@ class Generator {
         this.axis(new Vector(-1, 1), this.xfrom, this.xto, this.gap / 2, this.xSection.name);
         this.axis(new Vector(1, 0), this.yfrom, this.yto, this.gap, this.ySection.name);
         this.axis(new Vector(0, -1), this.zfrom, this.zto, this.gap, this.zSection.name);
+        this.drawPoints();
         drawImage();
+    }
+    drawPoints() {
+        this.points.forEach(point => {
+            const { x, y, z } = point;
+            this.drawPoint(x, y, z);
+        });
+    }
+    drawPoint(x, y, z) {
+        const dx = x * this.gap / 2;
+        const dy = y * this.gap;
+        const dz = -z * this.gap;
+        console.log(dx, dy, dz);
+        const position2D = convert3dTo2d(dx, dy, dz);
+        this.setColor('green');
+        line(position2D.x - 10, position2D.y - 10, 20, 20);
+        line(position2D.x - 10, position2D.y + 10, 20, -20);
     }
     calculateCanvasSize(gap, endOffset) {
         // calculate canvas size to fit content
@@ -220,13 +247,15 @@ class Generator {
         }
     }
 }
-new Generator();
-canvas.remove();
-async function copyImage() {
-    const data = await fetch(convertCanvasToImage());
-    const blob = await data.blob();
-    await navigator.clipboard.write([
-        new ClipboardItem({ 'image/png': blob })
-    ]);
-}
-document.getElementById('copy').addEventListener('click', copyImage);
+document.addEventListener('DOMContentLoaded', () => {
+    new Generator();
+    canvas.remove();
+    async function copyImage() {
+        const data = await fetch(convertCanvasToImage());
+        const blob = await data.blob();
+        await navigator.clipboard.write([
+            new ClipboardItem({ 'image/png': blob })
+        ]);
+    }
+    document.getElementById('copy').addEventListener('click', copyImage);
+});
