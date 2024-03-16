@@ -15,6 +15,15 @@ class PointManager extends HTMLElement {
         console.log("dad");
         this.shadowRoot.getElementById('points').appendChild(point);
         this.points.push(point);
+        // delete the point
+        point.shadowRoot.querySelector(".delete").addEventListener('click', () => {
+            this.shadowRoot.getElementById('points').removeChild(point);
+        });
+        // update the point with new values if values changed
+        point.shadowRoot.querySelectorAll('.x, .y, .z').forEach((input) => {
+            input.addEventListener('change', () => {
+            });
+        });
     }
     html() {
         this.shadowRoot.innerHTML += /*html*/ `
@@ -26,7 +35,10 @@ class PointManager extends HTMLElement {
     }
     css() {
         this.shadowRoot.innerHTML += '<style>' + /*css*/ `
-            
+            #points{
+                display: flex;
+                gap: 10px;
+            }
         ` + '</style>';
     }
 }
