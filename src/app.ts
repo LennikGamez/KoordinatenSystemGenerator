@@ -115,7 +115,6 @@ class Generator{
             looksection[i].addEventListener('input', this.generate.bind(this));
         }
         
-        // document.querySelector('point-manager').addEventListener('changeevent', ()=>console.log('changed'));
         document.querySelector('point-manager').addEventListener('changeevent', this.generate.bind(this));
         
     }

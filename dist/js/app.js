@@ -85,7 +85,6 @@ class Generator {
         for (let i = 0; i < looksection.length; i++) {
             looksection[i].addEventListener('input', this.generate.bind(this));
         }
-        // document.querySelector('point-manager').addEventListener('changeevent', ()=>console.log('changed'));
         document.querySelector('point-manager').addEventListener('changeevent', this.generate.bind(this));
     }
     arrow(x, y, rad = 0) {

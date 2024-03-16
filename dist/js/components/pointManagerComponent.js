@@ -49,6 +49,13 @@ export default class PointManager extends HTMLElement {
                 flex-direction: column;
             }
 
+            :host{
+                display: grid;
+                grid-template-rows: 2fr 1fr;
+                place-items: center;
+                gap: 20px
+            }
+
         ` + '</style>';
     }
 }
