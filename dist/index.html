@@ -6,6 +6,8 @@
     <title>CSG</title>
     <link rel="stylesheet" href="style.css" />
     <script src="js/app.js" defer type="module"></script>
+    <script src="js/components/pointManagerComponent.js " type="module" defer></script>
+    <script src="js/components/pointComponent.js" type="module" defer></script>
   </head>
   <body>
     <div id="options">
@@ -74,6 +76,7 @@
         <input type="color" name="color" id="color" value="#000000">
       </div>
     </div>
+    <point-manager></point-manager>
     <canvas id="canvas" width="600" height="600"></canvas>
     <img id="display" />
     <button id="copy">Copy</button>
