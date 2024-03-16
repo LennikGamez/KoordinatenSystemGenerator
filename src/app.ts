@@ -203,7 +203,6 @@ class Generator{
         const dx = x*this.gap/2;
         const dy = y*this.gap;
         const dz = -z*this.gap;
-        console.log(dx, dy, dz);
         
         const position2D = convert3dTo2d(dx, dy, dz);
 
