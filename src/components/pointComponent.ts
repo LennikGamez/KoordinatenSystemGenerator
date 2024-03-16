@@ -22,7 +22,7 @@ export default class PointElement extends HTMLElement{
             input{
                 width: 40px;
             }
-            .reset{
+            .delete{
                 text-align: center;
                 vertical-align: middle;
 
