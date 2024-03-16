@@ -1,3 +1,4 @@
+import PointElement from './components/pointComponent.js';
 import Vector from './vector.js';
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -148,7 +149,8 @@ class Generator{
         this.color = (document.getElementById('color') as HTMLInputElement).value;
     }
 
-    generate(){
+    generate(points: Array<PointElement> = []){
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         
         this.loadOptions();        
 

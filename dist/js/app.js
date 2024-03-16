@@ -112,7 +112,8 @@ class Generator {
     loadLookSection() {
         this.color = document.getElementById('color').value;
     }
-    generate() {
+    generate(points = []) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         this.loadOptions();
         ctx.resetTransform();
         ctx.clearRect(0, 0, canvas.width, canvas.height);
