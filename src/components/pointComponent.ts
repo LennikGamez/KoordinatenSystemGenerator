@@ -8,8 +8,9 @@ export default class PointElement extends HTMLElement{
         this.css();
     }
     
-    getPoint(): {x: number, y: number, z: number}{
+    getPoint(): {name: string, x: number, y: number, z: number}{
         return {
+            name: (this.shadowRoot.querySelector('.name') as HTMLInputElement).value,
             x: Number((this.shadowRoot.querySelector('.x') as HTMLInputElement).value),
             y: Number((this.shadowRoot.querySelector('.y') as HTMLInputElement).value),
             z: Number((this.shadowRoot.querySelector('.z') as HTMLInputElement).value),
@@ -18,6 +19,7 @@ export default class PointElement extends HTMLElement{
 
     html() {
         this.shadowRoot.innerHTML += /*html*/`
+            <input type"text" class="name" placeholder="Name" value="P"></input>
             <input type=number class="x" placeholder='X'></input>   
             <input type=number class="y" placeholder='Y'></input>   
             <input type=number class="z" placeholder='Z'></input>   
@@ -29,6 +31,7 @@ export default class PointElement extends HTMLElement{
         this.shadowRoot.innerHTML +=  '<style>' +/*css*/`
             input{
                 width: 40px;
+                text-align: center;
             }
             .delete{
                 text-align: center;
