@@ -1,6 +1,18 @@
+
+@media screen and (max-width: 800px) {
+    img{
+        width: 100%;
+    }
+}
+
+@media screen and (min-width: 1000px) {
+    img{
+        width: 25vw;
+    }
+}
+
 img{
     margin: 30px;
-    width: 100%;
     border: 1px solid black;
 }
 
