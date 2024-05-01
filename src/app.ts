@@ -194,21 +194,23 @@ class Generator{
 
     drawPoints(){
         this.points.forEach(point => {
-            const {x, y, z} = point;
-            this.drawPoint(x, y, z);
+            const {name, x, y, z, color} = point;
+            this.drawPoint(name, x, y, z, color);
         })
     }
 
-    drawPoint(x: number, y: number, z: number){
+    drawPoint(name: string, x: number, y: number, z: number, color: string){
         const dx = x*this.gap/2;
         const dy = y*this.gap;
         const dz = -z*this.gap;
         
         const position2D = convert3dTo2d(dx, dy, dz);
 
-        this.setColor('green');
+        this.setColor(color);
         line(position2D.x-10, position2D.y-10, 20, 20);
         line(position2D.x-10, position2D.y+10, 20, -20);
+
+        write(name, position2D.x + 20, position2D.y + 20, 28);
 
     }
     calculateCanvasSize(gap, endOffset){
