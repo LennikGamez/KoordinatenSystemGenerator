@@ -32,7 +32,7 @@ export default class PointManager extends HTMLElement {
         });
 
         // update the point with new values if values changed
-        point.shadowRoot.querySelectorAll('.name, .x, .y, .z').forEach((input)=>{
+        point.shadowRoot.querySelectorAll('.name, .x, .y, .z, .color').forEach((input)=>{
             input.addEventListener('change', ()=>{                
                 this.dispatchEvent(changeEvent);
             })
