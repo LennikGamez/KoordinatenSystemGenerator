@@ -180,10 +180,9 @@ class Generator{
         write('0', -this.numberOffset/2, -this.numberOffset/2, this.numberSize * this.strokeWidth / 2)
         ctx.lineWidth = this.strokeWidth;
 
-
-        this.axis(new Vector(-1, 1), this.xfrom, this.xto, this.gap/2, this.xSection.name);
-        this.axis(new Vector(1, 0), this.yfrom, this.yto, this.gap, this.ySection.name);
-        this.axis(new Vector(0, -1), this.zfrom, this.zto, this.gap, this.zSection.name);
+        this.axis(new Vector(-1, 1), this.xfrom, this.xto, this.gap/2, this.xSection.name, this.xSection.step);
+        this.axis(new Vector(1, 0), this.yfrom, this.yto, this.gap, this.ySection.name, this.ySection.step);
+        this.axis(new Vector(0, -1), this.zfrom, this.zto, this.gap, this.zSection.name,this.zSection.step);
 
         this.drawPoints();
 
@@ -289,7 +288,7 @@ class Generator{
         ctx.fillStyle = color;
     }
 
-    axis(direction, from, to, gap, name): void{
+    axis(direction, from, to, gap, name, steps_per_unit: number): void{
         const lengthPositive = to * gap + this.lineBuffer/2;
         const lengthNegative = from * gap + this.lineBuffer/2;
         const end: Vector = direction.mult(lengthPositive);
@@ -312,9 +311,9 @@ class Generator{
             line(step.x, step.y, -newVector.x * this.strokeLength, -newVector.y * this.strokeLength);
 
             if (direction.getAngle() == 0){
-                write(i.toString(), step.x + newVector.x * this.numberOffset, step.y + newVector.y * this.numberOffset, this.numberSize * this.strokeWidth / 2);
+                write((i*steps_per_unit).toString(), step.x + newVector.x * this.numberOffset, step.y + newVector.y * this.numberOffset, this.numberSize * this.strokeWidth / 2);
             }else{;
-                write(i.toString(), step.x - newVector.x * this.numberOffset/2, step.y - newVector.y * this.numberOffset/2, this.numberSize * this.strokeWidth / 2);
+                write((i*steps_per_unit).toString(), step.x - newVector.x * this.numberOffset/2, step.y - newVector.y * this.numberOffset/2, this.numberSize * this.strokeWidth / 2);
             }
         }
     }
